@@ -2,7 +2,7 @@
 
 This repository provides an interface to the transcription engine (e.g. DeepScribe).
 
-The script is in a folder called 'api' and required transcriber libraries are imported.
+The API script is called transcribers.py and is in a folder called 'api'. Required transcriber modules are imported to the class for the transcriber. For example, DeepScribe modules are imported into the 'deepscribe' class.
 
 Configuration files can be supplied for a variety of combinations of languages and transcriber engines (e.g. deepscribe, wav2vec, HuBERT) as they become available. A set of example files is provided using the dev area location references.
 
@@ -42,8 +42,6 @@ or
 •	The various model parameters can be changed as in the example yaml file below. Note parameters will vary with transcriber engine. The values below are for DeepScribe used with a KenLM language model
 
 english.yaml
-
-	from api.transcribers import Transcriber
 	
 	transcriber: deepscribe
 	model_path: "/path/to/audio/model/deepscribe-0.3.0.pth"
