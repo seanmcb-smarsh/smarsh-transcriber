@@ -1,194 +1,95 @@
-import hydra
-from hydra.experimental import initialize, compose
-from hydra.utils import to_absolute_path
-from hydra.core.config_store import ConfigStore
-
-from deepscribe_inference.config import TranscribeConfig
-from deepscribe_inference.config import InferenceConfig, DecoderConfig, HardwareConfig, TextPostProcessingConfig, \
-    SavedModelConfig
-from deepscribe_inference.load_model import load_model, load_decoder
-from deepscribe_inference.transcribe import transcribe, run_inference
-
-from api.transcriber_api import TranscriberModel
-import json
 import os
-import io
-from typing import Dict, List,Optional
-import yaml
 import sys
 import torch
+from abc import ABC, abstractmethod
+from typing import Dict, Union, List
+import numpy as np
+from munch import DefaultMunch
 
 
+def load(settings):
 
-#class deepscribe(TranscriberModel): # Use for dev if you want multiple transcrbers available
-class Transcriber(TranscriberModel): 
+        load.settings = settings
 
-    cs = ConfigStore.instance()
-    cs.store(name="config", node=TranscribeConfig)
-    overrides_cfg=to_absolute_path('api/overrides.yaml') # Default - can be overridden below 
-    transcriber_name = 'deepscribe'
+        load.transcriber = settings.get('transcriber',{})
+  
+        return(str_to_class(load.transcriber))
 
 
-    def __init__(self,*args, **kwargs):
+def str_to_class(classname):
+    return getattr(sys.modules[__name__], classname)
+
+class TranscriberModel(ABC):
+    
+    @abstractmethod
+    def predict(self, x: Union[str, List[str]]) -> List[Dict[str, Union[str, np.ndarray, List[str]]]]:
+        pass
+
+
+    @staticmethod
+    def load(path: str, class_name: str, module_name: str):
+        pass
+
+
+class deepscribe(TranscriberModel):
+
+
+    def predict(input_path): 
+
+        # DeepScribe-specific imports
+        from deepscribe_inference.config import TranscribeConfig,HardwareConfig,InferenceConfig
+        from deepscribe_inference.load_model import load_model, load_decoder
+        from deepscribe_inference.transcribe import run_inference 
+
+        new_model=load.settings['model_path']
+
+        config_dict=TranscribeConfig.inference.__dict__
+        audio_model=load.settings['model_path']
+
+        # Update config dictionary
+        if audio_model: config_dict['model'].model_path=audio_model
+        if load.settings.get('lm_path',{}): config_dict['decoder'].lm_path=load.settings['lm_path']
+        if load.settings.get('punc_path',{}): config_dict['text_postprocessing'].punc_path=load.settings['punc_path']
+        #config_dict['text_postprocessing'].punc_path=load.settings['punc_path'] #Without Null test
         
-        config=TranscribeConfig
-        self.override_config = kwargs.get('overrides',{})
-        overrides_cfg=self.override_config
+        if load.settings.get('acronyms_path',{}): config_dict['text_postprocessing'].acronyms_path=load.settings['acronyms_path']
+        
+        #config_dict['decoder'].lm_path=load.settings['lm_path']
+        if load.settings.get('alpha',{}): config_dict['decoder'].lm_alpha=load.settings['alpha']
+        if load.settings.get('beta',{}): config_dict['decoder'].lm_alpha=load.settings['beta']
+        
+        #Local config or default device:
+        if load.settings.get('device',{}):device=load.settings['device']
 
+        # Convert updated dictionary to object
+        cfg=DefaultMunch.fromDict(config_dict)
 
-    def load(self):
-
-        overrides=[]
-
-        def path_check(path_key,check_path):
-            path_dict={'self.input_path':'[]','self.output_path':"''"}
-
-            path_type = [key for key, value in path_dict.items() if path_key in key]
-
-            return path_type,check_path
-
-
-        # Refactor   
-        def local_overrides(config_file): 
-
-            out_file = ''
-            filepaths=['input_path','output_path'] # Probably not set in config but passed directly - but check before overwriting
-
-            transcriber=self.transcriber_name
-            with open(config_file, "r") as configs:
-                all_settings = yaml.load(configs, Loader=yaml.FullLoader)
-                transcriber_settings = all_settings.get('config',{}).get('transcriber',{}).get(transcriber,{}) 
-                lang = transcriber_settings.get('config',{}).get('language',{})
-                settings = transcriber_settings.get('config',{}).get('models',{}).get(lang,{})
-                local_overrides=[]
-                for k in settings:
-                    if settings[k] not in (None,''):
-
-                        if k in filepaths:
-                            v,p = path_check(k,settings[k])
-                            if k =='input_path':
-                                if self.input_path:
-                                    local_overrides.append('input_path' +'='+ str(self.input_path))
-                                    continue
-                            if k=='output_path':
-                                if self.output_path:
-                                    local_overrides.append('output_path' +'='+ str(self.output_path))
-                                    continue
-                        local_overrides.append(k +'='+ str(settings[k]))
-
-                # The next set of settings are for all languages. They can be removed in the config file and applied per langauge if preferred
-                # The code does not need to change as nulls will be returned and ignored.
-
-                data_settings = transcriber_settings.get('data',{})
-                for k in data_settings:
-                    if data_settings[k] not in (None,''):
-                        local_overrides.append(k +'='+ str(data_settings[k]))
-                self.overrides=local_overrides
-
-                return local_overrides
-
-        overrides=local_overrides(self.overrides_cfg)
-
-
-    def predict(self,*args,**kwargs): 
-
-        #Allow file inputs and outputs to be set when called
-        self.input_path = kwargs.get('input_path',{})
-        self.output_path = kwargs.get('output_path',{})
-        if kwargs.get('config',{}) == {}:
-            self.config=self.override_config   #Overrides already supplied at instantiation
+        #Locall config device or default
+        if device: 
+            device=torch.device(device)
         else:
-            self.config = kwargs.get('config',{}) # Overrides supplied on calling predict
-        print('*** CONFIG', self.config)
+            device = torch.device("cuda" if config_dict['hardware'].cuda else "cpu")
+
+        #run_inference parameters
         
-        @hydra.main(config_name="config")
-        def hydra_main(cfg: TranscribeConfig):
+        model = load_model(model_path=audio_model, precision=HardwareConfig.precision, device=device)
 
-            cfg=compose(config_name="config",overrides=self.overrides) # hydra compose overrides with config
-            #print('*** CONFIG ***\n',cfg)  #Dev check on config contents
-            transcribe(cfg=cfg)
+        decoder = load_decoder(decoder_cfg=InferenceConfig.decoder,labels=model.labels)
 
-            return
+        return run_inference(input_path=input_path, model=model,decoder=decoder,cfg=cfg,device=device)
 
-        self.load()
-        hydra_main()
-
-    def run(self):          #Alternative command to 'predict' (if preferred)
-        self.predict()
-
-
-
-
-
+    
 #----------------------------------------------------------------------------------------------------
 # Test Class for Hubert - Not for implementation
 #----------------------------------------------------------------------------------------------------
-'''
-class Transcriber(TranscriberModel): 
-#class hubert(TranscriberModel): Use for dev if you want multiple transcrbers available
-
-    #transcriber_name = __qualname__
-    transcriber_name = 'hubert'
-
-    def __init__(self,*args, **kwargs):
-        print('Initialise Hubert Model')
-
-    def predict(self,*args,**kwargs): 
-        
-        print('\nHubert Config\n')
-        
-        def local_overrides(config_file): 
-
-            out_file = ''
-            filepaths=['input_path','output_path'] # Probably not set in config but passed directly - but check before overwriting
-
-            transcriber=self.transcriber_name
-            with open(config_file, "r") as configs:
-                all_settings = yaml.load(configs, Loader=yaml.FullLoader)
-                transcriber_settings = all_settings.get('config',{}).get('transcriber',{}).get(transcriber,{}) 
-                lang = transcriber_settings.get('config',{}).get('language',{})
-                settings = transcriber_settings.get('config',{}).get('models',{}).get(lang,{})
-                local_overrides=[]
-                for k in settings:
-                    if settings[k] not in (None,''):
-
-                        if k in filepaths:
-                            v,p = path_check(k,settings[k])
-                            if k =='input_path':
-                                if self.input_path:
-                                    local_overrides.append('input_path' +'='+ str(self.input_path))
-                                    continue
-                            if k=='output_path':
-                                if self.output_path:
-                                    local_overrides.append('output_path' +'='+ str(self.output_path))
-                                    continue
-                        local_overrides.append(k +'='+ str(settings[k]))
-                print(local_overrides)
-                # The next set of settings are for all languages. They can be removed in the config file and applied per langauge if preferred
-                # The code does not need to change as nulls will be returned and ignored.
-                data_settings = transcriber_settings.get('data',{})
-                for k in data_settings:
-                    if data_settings[k] not in (None,''):
-                        local_overrides.append(k +'='+ str(data_settings[k]))
-                self.overrides=local_overrides
-
-                return local_overrides
-        
-        print(local_overrides('api/overrides.yaml'))
-
-        print('Hubert Predictions')
-        sys.exit()
-
-# Test Hubert Transcriber
-# class Transcriber(hubert):
-
-#     def __init__(self):
-#         pass
-
-'''
+# class hubert(TranscriberModel):
 
 
+#     def predict(input_path):
 
+#         print('I am HuBERT')
+#         print('Input',input_path)
+#         print('Settings',load.settings)
 
-
+#         return('HuBERT returning your call')
 
