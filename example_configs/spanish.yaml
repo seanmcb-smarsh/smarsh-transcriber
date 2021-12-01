@@ -1,0 +1,9 @@
+transcriber: deepscribe
+# Dev environment locations - change for deployment
+model_path: "/share/models/spanish/deepscribe-es-0.1.3.pth"
+lm_path: "/share/models/spanish/spanish-0.1.2.trie"
+punc_path:                            #"/share/models/spanish/punc-es-0.2.0.pth"
+acronyms_path: 
+lm_alpha: 0.39
+lm_beta: 0.45
+device: cuda
