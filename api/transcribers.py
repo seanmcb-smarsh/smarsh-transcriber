@@ -18,13 +18,15 @@ def transcriber_factory(yaml_file):
 class DeepscribeTranscriber(PredictiveModel):
 
     def __init__(self,settings):
-        self.device = torch.device(settings["device"])
+        self.cfg = TranscribeConfig()
+        self.inf_cfg = self.cfg.inference
+        self.device = torch.device("cuda" if self.inf_cfg.hardware.cuda else "cpu")
         self.model = load_model(
             model_path=settings['model_path'],
-            precision=HardwareConfig.precision,
+            precision=self.inf_cfg.hardware.precision,
             device=self.device)
         self.decoder = load_decoder(
-            decoder_cfg=InferenceConfig.decoder,
+            decoder_cfg=self.inf_cfg.decoder,
             labels=self.model.labels)
 
     def predict(self,input_path):
@@ -32,6 +34,6 @@ class DeepscribeTranscriber(PredictiveModel):
             input_path=input_path,
             model=self.model,
             decoder=self.decoder,
-            cfg=self.cfg,
+            cfg=self.inf_cfg,
             device=self.device)
 

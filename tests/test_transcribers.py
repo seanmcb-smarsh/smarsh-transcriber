@@ -5,10 +5,7 @@ import api.language_identifiers
 import api.voice_activity_detectors
 class Test(TestCase):
 
-    def test_load(self):
-        transcriber = api.transcribers.load('example_configs/english.yaml')
-
-    def test_predict(self):
+    def test_transcribe(self):
         transcriber = transcriber_factory('example_configs/english.yaml')
         result = transcriber.predict('data/english.wav')
         print(result["data/english.wav"]["transcription"])
