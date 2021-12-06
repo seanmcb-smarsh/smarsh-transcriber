@@ -6,7 +6,7 @@ from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
 from trellis import PredictiveModel
 
-def load(yaml_file):
+def transcriber_factory(yaml_file):
     with open(yaml_file, "r") as configs:
         settings = yaml.load(configs, Loader=yaml.FullLoader)
         comps = settings["transcriber"].split('.')
