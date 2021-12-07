@@ -7,7 +7,7 @@ def lid_factory(yaml_file):
     with open(yaml_file, "r") as configs:
         settings = yaml.load(configs, Loader=yaml.FullLoader)
         comps = settings["language_identifier"].split('.')
-        clz = __import__(comps[0])
+        clz = globals()[comps[0]]
         for comp in comps[1:]:
             clz = getattr(clz, comp)
         return clz(settings)
