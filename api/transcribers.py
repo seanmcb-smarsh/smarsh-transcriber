@@ -1,10 +1,10 @@
 import torch
-import yaml
 
-from deepscribe_inference.config import TranscribeConfig, HardwareConfig, InferenceConfig
+
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
-from trellis import PredictiveModel
+from dataclasses import dataclass
+from typing import Iterable, Mapping
 
 def transcriber_factory(config):
     """
@@ -37,7 +37,7 @@ class TranscriptionToken:
 class TranscriptionResult:
     tokens: Iterable[TranscriptionToken]
 
-class DeepscribeTranscriber(PredictiveModel):
+class DeepscribeTranscriber():
     """
     Internal implementation of Transcriber API to Deepscribe.  Only accessed via transcriber_factory()
     """
@@ -128,7 +128,7 @@ class DeepscribeTranscriber(PredictiveModel):
             tokens: Iterable[TranscriptionToken]
         """
         return run_inference(
-            input_path=input_path,
+            input_path=input_paths,
             model=self.model,
             decoder=self.decoder,
             cfg=self.inf_cfg,

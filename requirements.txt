@@ -1,1 +1,1 @@
--e git+ssh://git@ssh-git.corp.digitalreasoning.com:7999/labs/lang-id-api.git#egg=lang-id-api
+-e git+ssh://git@ssh-git.corp.digitalreasoning.com:7999/models/trellis.git#egg=trellis

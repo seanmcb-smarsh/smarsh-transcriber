@@ -16,5 +16,5 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-          'deepscribe-inference==0.3.2'
+          'deepscribe-inference==0.3.2',
       ])
