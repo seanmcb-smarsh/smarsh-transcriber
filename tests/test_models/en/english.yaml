@@ -1,9 +1,13 @@
 transcriber: DeepscribeTranscriber
 # Dev environment locations - change for deployment
-model_path: "deepscribe-0.3.0.pth"
-lm_path: "financial-0.1.3.trie"
-punc_path: "punc-0.2.0.pth"
-acronyms_path: "all.acronyms.txt"
-lm_alpha: 0.39
-lm_beta: 0.45
-device: "cuda"     #cuda or cpu
+config:
+  model:
+    model_path: "deepscribe-0.3.0.pth"
+  lm_path: "financial-0.1.3.trie"
+  punc_path: "punc-0.2.0.pth"
+  acronyms_path: "all.acronyms.txt"
+  lm_alpha: 0.39
+  lm_beta: 0.45
+  hardware:
+    cuda: True     #cuda or cpu
+    precision: ModelPrecision = ModelPrecision.half  # Precision for CUDA inference

@@ -1,14 +1,14 @@
 from unittest import TestCase
 
 from api.transcribers import transcriber_factory
-from api.utils.utils import read_config
+from api.util.configs import read_config
 
 class Test(TestCase):
 
     def test_transcribe(self):
-        cfg = read_config('test_models/en/english.yaml')
+        cfg = read_config('tests/test_models/en/english.yaml')
         transcriber = transcriber_factory(cfg)
-        input = "test_audio/wav/downloaded/fightclub_with_silence.wav"
+        input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
         result = transcriber.predict([input])
         for token in result[input].tokens:
             print(token.text,token.start_time,token.end_time)

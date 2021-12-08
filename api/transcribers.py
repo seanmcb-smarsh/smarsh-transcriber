@@ -22,7 +22,7 @@ def transcriber_factory(config):
     config: a config object specific to the Transcriber engine e.g. a Deepscribe InferenceConfig
     """
     comps = config.transcriber.split('.')
-    clz = __import__(comps[0])
+    clz = globals()[comps[0]]
     for comp in comps[1:]:
         clz = getattr(clz, comp)
     return clz(config.config)
