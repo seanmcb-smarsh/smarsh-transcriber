@@ -4,6 +4,7 @@ import torch
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
 from dataclasses import dataclass
+from importlib import import_module
 from typing import Iterable, Mapping
 
 def transcriber_factory(config):
@@ -22,7 +23,7 @@ def transcriber_factory(config):
     config: a config object specific to the Transcriber engine e.g. a Deepscribe InferenceConfig
     """
     comps = config.transcriber.split('.')
-    clz = globals()[comps[0]]
+    clz = getattr(import_module('api.transcribers'), comps[0])
     for comp in comps[1:]:
         clz = getattr(clz, comp)
     return clz(config.config)

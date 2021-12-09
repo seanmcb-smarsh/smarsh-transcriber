@@ -1,4 +1,6 @@
 transcriber: DeepscribeTranscriber
+config_module: deepscribe_inference.config
+config_object: TranscribeConfig
 # Dev environment locations - change for deployment
 config:
   inference:

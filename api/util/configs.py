@@ -1,11 +1,9 @@
 import yaml
 
-from deepscribe_inference.config import TranscribeConfig
-from deepscribe_inference.enums import DecoderType, ModelPrecision
 from dataclasses import dataclass
-from typing import Type, Union
-
-types = [float, int, str, int, bool, DecoderType, ModelPrecision]
+from typing import Type, Union, TypeVar
+from importlib import import_module
+T = TypeVar('T')
 
 @dataclass
 class TranscriptionAPIConfig():
@@ -14,7 +12,7 @@ class TranscriptionAPIConfig():
     config: Should be config object relevant to the chosen transcription object
     '''
     transcriber: str
-    config:Type[Union[TranscribeConfig]]
+    config: Type[T]
 
 def override(object, config_dict):
     for key, value in config_dict.items():
@@ -25,12 +23,9 @@ def override(object, config_dict):
             setattr(object, key, value)
 
 def read_config(yaml_file):
-    transcribe_config = TranscribeConfig()
     with open(yaml_file, 'r') as configs:
         settings = yaml.load(configs, Loader=yaml.FullLoader)
-
+        transcribe_config = getattr(import_module(settings['config_module']), settings['config_object'])
         override(transcribe_config, settings['config'])
-
-
 
         return TranscriptionAPIConfig(transcriber = settings['transcriber'], config = transcribe_config.inference)
