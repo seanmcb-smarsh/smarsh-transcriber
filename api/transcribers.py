@@ -127,10 +127,22 @@ class DeepscribeTranscriber():
         class TranscriptionResult:
             tokens: Iterable[TranscriptionToken]
         """
-        return run_inference(
+        if isinstance(input_paths, str):
+            input_paths = [input_paths]
+        raw_results = run_inference(
             input_path=input_paths,
             model=self.model,
             decoder=self.decoder,
             cfg=self.inf_cfg,
             device=self.device)
+
+        final_results = {}
+        for input in input_paths:
+            text = list(raw_results[input]['transcript'])
+            times = [0] + raw_results[input]['timestamps']
+            results = []
+            for i in range(len(text)):
+                results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))
+            final_results.update({input: TranscriptionResult(results)})
+        return final_results
 
