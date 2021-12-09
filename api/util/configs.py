@@ -1,10 +1,20 @@
 import yaml
-from munch import munchify, DefaultMunch
+
 from deepscribe_inference.config import TranscribeConfig
 from deepscribe_inference.enums import DecoderType, ModelPrecision
+from dataclasses import dataclass
+from typing import Type, Union
 
 types = [float, int, str, int, bool, DecoderType, ModelPrecision]
 
+@dataclass
+class TranscriptionAPIConfig():
+    '''
+    transcriber: string defining type of transcription object
+    config: Should be config object relevant to the chosen transcription object
+    '''
+    transcriber: str
+    config:Type[Union[TranscribeConfig]]
 
 def override(object, config_dict):
     for key, value in config_dict.items():
@@ -23,4 +33,4 @@ def read_config(yaml_file):
 
 
 
-        return munchify({'transcriber':settings['transcriber'], 'config':transcribe_config.inference})
+        return TranscriptionAPIConfig(transcriber = settings['transcriber'], config = transcribe_config.inference)

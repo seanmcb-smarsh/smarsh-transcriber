@@ -1,1 +1,0 @@
--e git+ssh://git@ssh-git.corp.digitalreasoning.com:7999/models/trellis.git#egg=trellis
