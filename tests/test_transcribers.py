@@ -1,12 +1,22 @@
 from unittest import TestCase
 
-from api.transcribers import transcriber_factory
-from api.util.configs import read_config
+from api.transcribers import transcriber_factory, DeepscribeConfig, DeepscribeDecoderConfig
 
 class Test(TestCase):
 
     def test_transcribe(self):
-        cfg = read_config('tests/test_models/en/english.yaml')
+        cfg = DeepscribeConfig(
+            decoder=DeepscribeDecoderConfig(
+                lm_path = "/share/models/english/financial-0.1.3.trie"
+            ),
+            model=DeepscribeModelConfig(
+                model_path="/share/models/english/deepscribe-0.3.0.pth"
+            ),
+            text_postprocessing=DeepscribeTextPostProcessingConfig(
+                punc_path="/share/models/english/punc-0.2.0.pth",
+                acronyms_path="/share/models/english/acronyms/all.acronyms.txt"
+            )
+        )
         transcriber = transcriber_factory(cfg)
         input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
         result = transcriber.predict([input])
