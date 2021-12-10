@@ -7,14 +7,29 @@ from importlib import import_module
 from typing import Iterable, Mapping
 
 @dataclass
+class TranscriberConfig:
+    @abstractmethod
+    def load(self):
+        """
+        Common method to return a Transcriber.
+        The the type of the config object specifies the transcriber engine to be created.
+        For example, calling load() on an instance of DeepscribeConfig will return an initalized
+        DeepscribeTranscriber
+
+        :return: a Transcriber ready to go. The Transcriber will have been initialized and loaded with all models,
+        and be ready to convert speech into text.
+        """
+        pass
+
+@dataclass
 class DeepscribeDecoderConfig:
-    lm_path: str = ''  # Path to an (optional) kenlm language model for use with beam search
-    alpha: float = 0.39  # Language model weight Default is tuned for English
+    lm_path: str = ''   # Path to an (optional) kenlm language model for use with beam search
+    alpha: float = 0.39 # Language model weight Default is tuned for English
     beta: float = 0.45  # Language model word bonus (all words) Default is tuned for English
-    cutoff_top_n: int = 40  # Keep top cutoff_top_n characters with highest probs in beam search
+    cutoff_top_n: int = 40    # Keep top cutoff_top_n characters with highest probs in beam search
     cutoff_prob: float = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
     lm_workers: int = 8  # Number of LM processes to use for beam search
-    beam_width: int = 32  # Beam width to use for beam search
+    beam_width: int = 32 # Beam width to use for beam search
 
 @dataclass
 class DeepscribeTextPostProcessingConfig:
@@ -25,7 +40,7 @@ class DeepscribeTextPostProcessingConfig:
 class DeepscribeModelConfig:
     model_path: str = ''  # Path to acoustic model
 
-@dataclass()
+@dataclass
 class DeepscribeHardwareConfig:
     cuda: bool = True  # Use CUDA for inference
 
@@ -46,16 +61,7 @@ class AWSConfig:
 
 def transcriber_factory(config: Union[DeepscribeConfig,Wav2VecConfig,AWSConfig]):
     """
-    Factory to produce Transcribers.
-    Passed a config object, it returns a Transcriber ready to go.
-    The Transcriber will have been initialized and loaded with all models,
-    and be ready to convert speech into text.
 
-    :param config: Config object containing parameters specifying the desired transcriber
-
-    The the type of the config object specifies the transcriber engine to be created.
-    For example, passing an instance of DeepscribeConfig will return transcriber_factory initalized
-    DeepscribeTranscriber
     """
     name = config.__class__.__name__
     if name == 'DeepscribeConfig':

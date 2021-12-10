@@ -17,7 +17,7 @@ class Test(TestCase):
                 acronyms_path="/share/models/english/acronyms/all.acronyms.txt"
             )
         )
-        transcriber = transcriber_factory(cfg)
+        transcriber = cfg.load()
         input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
         result = transcriber.predict([input])
         for token in result[input].tokens:
