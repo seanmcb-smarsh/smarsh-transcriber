@@ -2,9 +2,9 @@ import torch
 
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
+from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig
 from dataclasses import dataclass
-from importlib import import_module
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Union
 
 @dataclass
 class DeepscribeDecoderConfig:
