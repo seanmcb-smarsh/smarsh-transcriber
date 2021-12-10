@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from api.transcribers import transcriber_factory, DeepscribeConfig, DeepscribeDecoderConfig
+from api.transcribers import transcriber_factory, DeepscribeConfig, DeepscribeDecoderConfig, DeepscribeTextPostProcessingConfig, DeepscribeModelConfig
 
 class Test(TestCase):
 
