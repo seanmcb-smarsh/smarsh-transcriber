@@ -5,9 +5,10 @@ from deepscribe_inference.transcribe import run_inference
 from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig
 from dataclasses import dataclass
 from typing import Iterable, Mapping, Union
+from pydantic import BaseModel
 
 @dataclass
-class TranscriberConfig:
+class TranscriberConfig(BaseModel):
     @abstractmethod
     def load(self):
         """
@@ -22,7 +23,7 @@ class TranscriberConfig:
         pass
 
 @dataclass
-class DeepscribeDecoderConfig:
+class DeepscribeDecoderConfig(BaseModel):
     lm_path: str = ''   # Path to an (optional) kenlm language model for use with beam search
     alpha: float = 0.39 # Language model weight Default is tuned for English
     beta: float = 0.45  # Language model word bonus (all words) Default is tuned for English
@@ -32,43 +33,37 @@ class DeepscribeDecoderConfig:
     beam_width: int = 32 # Beam width to use for beam search
 
 @dataclass
-class DeepscribeTextPostProcessingConfig:
+class DeepscribeTextPostProcessingConfig(BaseModel):
     punc_path: str = ''  # Path to a DeepScribe Punctuation model
     acronyms_path: str = ''  # Path to acronym whitelist (collapse and capitalize)
 
 @dataclass
-class DeepscribeModelConfig:
+class DeepscribeModelConfig(BaseModel):
     model_path: str = ''  # Path to acoustic model
 
 @dataclass
-class DeepscribeHardwareConfig:
+class DeepscribeHardwareConfig(BaseModel):
     cuda: bool = True  # Use CUDA for inference
 
 @dataclass
-class DeepscribeConfig:
+class DeepscribeConfig(TranscriberConfig):
     decoder: DeepscribeDecoderConfig = DeepscribeDecoderConfig()
     text_postprocessing: DeepscribeTextPostProcessingConfig = DeepscribeTextPostProcessingConfig()
     model: DeepscribeModelConfig = DeepscribeModelConfig()
     hardware: DeepscribeHardwareConfig = DeepscribeHardwareConfig()
 
-@dataclass
-class Wav2VecConfig:
-    dummy: str = "dummy"
+    def load(self):
+        return DeepscribeTranscriber(self)
 
 @dataclass
-class AWSConfig:
-    another_dummy: str = "dummy"
+class Wav2VecConfig(BaseModel):
+    def load(self):
+        raise NotImplementedError('Wav2Vec is not implemented')
 
-def transcriber_factory(config: Union[DeepscribeConfig,Wav2VecConfig,AWSConfig]):
-    """
-
-    """
-    name = config.__class__.__name__
-    if name == 'DeepscribeConfig':
-        return DeepscribeTranscriber(config)
-    else:
-        raise NotImplementedError(name + ' is not implemented')
-
+@dataclass
+class AWSConfig(BaseModel):
+    def load(self):
+        raise NotImplementedError('AWS is not implemented')
 
 @dataclass
 class TranscriptionToken:
