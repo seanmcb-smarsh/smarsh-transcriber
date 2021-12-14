@@ -18,10 +18,12 @@ jobs:
       with:
         python-version: 3.6
 
-    - name: System Configuration
+    - name: Artifactory Configuration
       uses: jfrog/setup-jfrog-cli@v2
       env:
         JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+
+    - name: System Configuration
       run: |
         python3 -m pip install --upgrade pip
 
