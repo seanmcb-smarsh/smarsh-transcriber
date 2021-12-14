@@ -12,6 +12,11 @@ Ensure you are using python 3.6
 
     bash install.sh
 
+To run tests:
+    
+    bash download_english_models.sh
+    bash download_test_data.sh
+    pytest tests
 
 **Running Transcriptions**
 
