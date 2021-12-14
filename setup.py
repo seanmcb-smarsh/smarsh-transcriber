@@ -17,4 +17,5 @@ setup(
     zip_safe=False,
     install_requires=[
           'deepscribe-inference==0.3.3',
+          'pydantic'
       ])

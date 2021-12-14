@@ -4,10 +4,10 @@ from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
 from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig
 from dataclasses import dataclass
-from typing import Iterable, Mapping, Union
+from typing import Iterable, Mapping
 from pydantic import BaseModel
+from abc import abstractmethod
 
-@dataclass
 class TranscriberConfig(BaseModel):
     @abstractmethod
     def load(self):
@@ -22,45 +22,38 @@ class TranscriberConfig(BaseModel):
         """
         pass
 
-@dataclass
 class DeepscribeDecoderConfig(BaseModel):
-    lm_path: str = ''   # Path to an (optional) kenlm language model for use with beam search
-    alpha: float = 0.39 # Language model weight Default is tuned for English
-    beta: float = 0.45  # Language model word bonus (all words) Default is tuned for English
-    cutoff_top_n: int = 40    # Keep top cutoff_top_n characters with highest probs in beam search
-    cutoff_prob: float = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
-    lm_workers: int = 8  # Number of LM processes to use for beam search
-    beam_width: int = 32 # Beam width to use for beam search
+    lm_path = ''   # Path to an (optional) kenlm language model for use with beam search
+    alpha = 0.39 # Language model weight Default is tuned for English
+    beta = 0.45  # Language model word bonus (all words) Default is tuned for English
+    cutoff_top_n = 40    # Keep top cutoff_top_n characters with highest probs in beam search
+    cutoff_prob = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
+    lm_workers = 8  # Number of LM processes to use for beam search
+    beam_width = 32 # Beam width to use for beam search
 
-@dataclass
 class DeepscribeTextPostProcessingConfig(BaseModel):
-    punc_path: str = ''  # Path to a DeepScribe Punctuation model
-    acronyms_path: str = ''  # Path to acronym whitelist (collapse and capitalize)
+    punc_path = ''  # Path to a DeepScribe Punctuation model
+    acronyms_path = ''  # Path to acronym whitelist (collapse and capitalize)
 
-@dataclass
 class DeepscribeModelConfig(BaseModel):
-    model_path: str = ''  # Path to acoustic model
+    model_path = ''  # Path to acoustic model
 
-@dataclass
 class DeepscribeHardwareConfig(BaseModel):
-    cuda: bool = True  # Use CUDA for inference
+    cuda = True  # Use CUDA for inference
 
-@dataclass
 class DeepscribeConfig(TranscriberConfig):
-    decoder: DeepscribeDecoderConfig = DeepscribeDecoderConfig()
-    text_postprocessing: DeepscribeTextPostProcessingConfig = DeepscribeTextPostProcessingConfig()
-    model: DeepscribeModelConfig = DeepscribeModelConfig()
-    hardware: DeepscribeHardwareConfig = DeepscribeHardwareConfig()
+    decoder = DeepscribeDecoderConfig()
+    text_postprocessing = DeepscribeTextPostProcessingConfig()
+    model = DeepscribeModelConfig()
+    hardware = DeepscribeHardwareConfig()
 
     def load(self):
         return DeepscribeTranscriber(self)
 
-@dataclass
 class Wav2VecConfig(BaseModel):
     def load(self):
         raise NotImplementedError('Wav2Vec is not implemented')
 
-@dataclass
 class AWSConfig(BaseModel):
     def load(self):
         raise NotImplementedError('AWS is not implemented')
