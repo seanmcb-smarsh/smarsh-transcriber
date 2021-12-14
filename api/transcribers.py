@@ -1,37 +1,162 @@
 import torch
-import yaml
 
-from deepscribe_inference.config import TranscribeConfig, HardwareConfig, InferenceConfig
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
-from trellis import PredictiveModel
+from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig
+from dataclasses import dataclass
+from typing import Iterable, Mapping
+from pydantic import BaseModel
+from abc import abstractmethod
 
-def transcriber_factory(yaml_file):
-    with open(yaml_file, "r") as configs:
-        settings = yaml.load(configs, Loader=yaml.FullLoader)
-        comps = settings["transcriber"].split('.')
-        clz = __import__(comps[0])
-        for comp in comps[1:]:
-            clz = getattr(clz, comp)
-        return clz(settings)
+class TranscriberConfig(BaseModel):
+    @abstractmethod
+    def load(self):
+        """
+        Common method to return a Transcriber.
+        The the type of the config object specifies the transcriber engine to be created.
+        For example, calling load() on an instance of DeepscribeConfig will return an initalized
+        DeepscribeTranscriber
 
-class DeepscribeTranscriber(PredictiveModel):
+        :return: a Transcriber ready to go. The Transcriber will have been initialized and loaded with all models,
+        and be ready to convert speech into text.
+        """
+        pass
 
-    def __init__(self,settings):
-        self.device = torch.device(settings["device"])
+class DeepscribeDecoderConfig(BaseModel):
+    lm_path = ''   # Path to an (optional) kenlm language model for use with beam search
+    alpha = 0.39 # Language model weight Default is tuned for English
+    beta = 0.45  # Language model word bonus (all words) Default is tuned for English
+    cutoff_top_n = 40    # Keep top cutoff_top_n characters with highest probs in beam search
+    cutoff_prob = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
+    lm_workers = 8  # Number of LM processes to use for beam search
+    beam_width = 32 # Beam width to use for beam search
+
+class DeepscribeTextPostProcessingConfig(BaseModel):
+    punc_path = ''  # Path to a DeepScribe Punctuation model
+    acronyms_path = ''  # Path to acronym whitelist (collapse and capitalize)
+
+class DeepscribeModelConfig(BaseModel):
+    model_path = ''  # Path to acoustic model
+
+class DeepscribeHardwareConfig(BaseModel):
+    cuda = True  # Use CUDA for inference
+
+class DeepscribeConfig(TranscriberConfig):
+    decoder = DeepscribeDecoderConfig()
+    text_postprocessing = DeepscribeTextPostProcessingConfig()
+    model = DeepscribeModelConfig()
+    hardware = DeepscribeHardwareConfig()
+
+    def load(self):
+        return DeepscribeTranscriber(self)
+
+class Wav2VecConfig(BaseModel):
+    def load(self):
+        raise NotImplementedError('Wav2Vec is not implemented')
+
+class AWSConfig(BaseModel):
+    def load(self):
+        raise NotImplementedError('AWS is not implemented')
+
+@dataclass
+class TranscriptionToken:
+    """
+    Common representation of word or punctuation in a transcription
+    """
+    text: str       # orthography or word or punctuation
+    start_time: int # start time in milliseconds
+    end_time: int   # end time in milliseconds
+
+@dataclass
+class TranscriptionResult:
+    """
+    Common transcription result.  Returned by all types of transcribers
+    """
+    tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
+
+class DeepscribeTranscriber:
+    """
+    Internal implementation of Transcriber API to Deepscribe.  Only accessed via transcriber_factory()
+    """
+    def __init__(self,config: DeepscribeConfig):
+        """
+        :param config: Config object containing parameters specific to the DeepscribeTranscriber
+
+        The DeepscribeConfig has many values, however default values are provided for all of them.
+        The caller overrides some of these values using recommendations from Research.
+        Some common overrides are:
+
+        model.model_path: string path to acoustic models e.g. "/share/models/english/deepscribe-0.3.0.pth"
+        decoder.lm_path: string path to language models e.g. "/share/models/english/financial-0.1.3.trie"
+        decoder.alpha: float weight for alpha e.g. 0.39
+        decoder.beta: float weight for beta e.g. 0.45
+        text_postprocessing.punc_path: string path to punctuation models e.g. "/share/models/english/punc-0.2.0.pth"
+        text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
+        hardware.cuda: boolean specify whether the engine should run on a GPU e.g. true
+        """
+        self.inf_cfg = InferenceConfig(
+            decoder = DecoderConfig(
+                lm_path = config.decoder.lm_path,
+                alpha = config.decoder.alpha,
+                beta = config.decoder.beta,
+                cutoff_top_n = config.decoder.cutoff_top_n,
+                cutoff_prob = config.decoder.cutoff_prob,
+                lm_workers = config.decoder.lm_workers,
+                beam_width = config.decoder.beam_width
+            ),
+            text_postprocessing = TextPostProcessingConfig(
+                punc_path = config.text_postprocessing.punc_path,
+                acronyms_path = config.text_postprocessing.acronyms_path
+            ),
+            model = SavedModelConfig(
+                model_path = config.model.model_path
+            ),
+            hardware = HardwareConfig(
+                cuda = config.hardware.cuda
+            )
+        )
+        self.device = torch.device("cuda" if self.inf_cfg.hardware.cuda else "cpu")
         self.model = load_model(
-            model_path=settings['model_path'],
-            precision=HardwareConfig.precision,
+            model_path=self.inf_cfg.model.model_path,
+            precision=self.inf_cfg.hardware.precision,
             device=self.device)
         self.decoder = load_decoder(
-            decoder_cfg=InferenceConfig.decoder,
+            decoder_cfg=self.inf_cfg.decoder,
             labels=self.model.labels)
 
-    def predict(self,input_path):
-        return run_inference(
-            input_path=input_path,
+    def predict(self,input_paths: Iterable[str]) -> Mapping[str, TranscriptionResult]:
+        """
+        Convert audio recordings into transcriptions.
+
+        :param input_paths: An iterable collection of string file paths.  Paths are expected to be WAV files
+        :return: a Mapping of file path to TranscriptionResult
+
+        @dataclass
+        class TranscriptionToken:
+            text: str
+            start_time: int
+            end_time: int
+
+        @dataclass
+        class TranscriptionResult:
+            tokens: Iterable[TranscriptionToken]
+        """
+        if isinstance(input_paths, str):
+            input_paths = [input_paths]
+        raw_results = run_inference(
+            input_path=input_paths,
             model=self.model,
             decoder=self.decoder,
-            cfg=self.cfg,
+            cfg=self.inf_cfg,
             device=self.device)
+
+        final_results = {}
+        for input in input_paths:
+            text = list(raw_results[input]['transcript'])
+            times = [0] + raw_results[input]['timestamps']
+            results = []
+            for i in range(len(text)):
+                results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))
+            final_results.update({input: TranscriptionResult(results)})
+        return final_results
 

@@ -1,8 +1,0 @@
-torch
-sox
-
--e git+https://git.corp.digitalreasoning.com/scm/labs/checkpoint.pytorch.git#egg=checkpoint
--e git+https://git.corp.digitalreasoning.com/labs/ctcdecode.git#egg=ctcdecode
-#ctcdecode
--e git+https://git.corp.digitalreasoning.com/labs/data-utils.git#egg=data_utils
--e git+https://git.corp.digitalreasoning.com/labs/editops.git#egg=editops
