@@ -7,14 +7,14 @@ class Test(TestCase):
     def test_transcribe(self):
         cfg = DeepscribeConfig(
             decoder=DeepscribeDecoderConfig(
-                lm_path = "/share/models/english/financial-0.1.3.trie"
+                lm_path = "tests/test_models/en/financial-0.1.3.trie"
             ),
             model=DeepscribeModelConfig(
-                model_path="/share/models/english/deepscribe-0.3.0.pth"
+                model_path="tests/test_models/en/deepscribe-0.3.0.pth"
             ),
             text_postprocessing=DeepscribeTextPostProcessingConfig(
-                punc_path="/share/models/english/punc-0.2.0.pth",
-                acronyms_path="/share/models/english/acronyms/all.acronyms.txt"
+                punc_path="tests/test_models/en/punc-0.2.0.pth",
+                acronyms_path="tests/test_models/en/all.acronyms.txt"
             )
         )
         transcriber = cfg.load()
