@@ -25,12 +25,16 @@ jobs:
         python3 -m pip install --upgrade pip
         chmod +x scripts/install.sh
         chmod +x scripts/test.sh
+        chmod +x scripts/download_english_models.sh
+        chmod +x scripts/download_test_data.sh
         ./scripts/install.sh
 
 
     - name: Code Coverage Report
       run: |
         sudo apt-get update
+        scripts/download_english_models.sh
+        scripts/download_test_data.sh
         ./scripts/test.sh
 
           

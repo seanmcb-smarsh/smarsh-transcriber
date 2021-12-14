@@ -8,6 +8,4 @@ conda install pytorch==1.9.0 torchvision==0.10.0 torchaudio==0.9.0 cudatoolkit=1
 SCRIPT_DIR=$(cd `..` && pwd)
 echo $SCRIPT_DIR
 
-pip install -r requirements.txt
-
 pip install -e .
