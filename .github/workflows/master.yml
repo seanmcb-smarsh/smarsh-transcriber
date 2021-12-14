@@ -1,0 +1,43 @@
+name: Master Tests
+
+on: 
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v2
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+
+    - name: System Configuration
+      run: |
+        python3 -m pip install --upgrade pip
+        chmod +x scripts/system_setup.sh
+        chmod +x scripts/install.sh
+        chmod +x scripts/test.sh
+        ./scripts/system_setup.sh
+
+
+    - name: Code Coverage Report
+      run: |
+        sudo apt-get update
+        ./scripts/test.sh
+
+          
+    - name: Setup Sonarscanner
+      uses: warchant/setup-sonar-scanner@v3
+
+    - name: SonarCloud Scan and Publish
+      run: |
+        sonar-scanner -Dsonar.projectKey=transcriber-api  -Dsonar.sources=/home/runner/work/transcriber-api/transcriber-api  -Dsonar.github.repository=Smarsh/transcriber-api  -Dsonar.host.url=${{secrets.SONAR_URL}} -Dsonar.login=${{secrets.SONAR_KEY}} -Dsonar.github.oauth=${{secrets.G_ACCESS_TOKEN}} -Dsonar.python.xunit.reportPath=pytest-report.xml -Dsonar.python.coverage.reportPaths=coverage.xml
