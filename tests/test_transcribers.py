@@ -19,7 +19,7 @@ class Test(TestCase):
         )
         transcriber = cfg.load()
         input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
-        result = transcriber.predict([input])
+        result = transcriber.predict(input)
         for token in result[input].tokens:
             print(token.text,token.start_time,token.end_time)
 

@@ -19,59 +19,67 @@ In the example below, settings for English transcription are in a file called 'e
 
 These values are then used on the files to be transcribed in the form transcriber.predict()
 
-	import yaml
-	from api.transcribers import load
+	cfg = DeepscribeConfig(
+            decoder=DeepscribeDecoderConfig(
+                lm_path = "path/to/lm.trie"
+            ),
+            model=DeepscribeModelConfig(
+                model_path="path/to/model.pth"
+            ),
+            text_postprocessing=DeepscribeTextPostProcessingConfig(
+                punc_path="path/to/punc.pth",
+                acronyms_path="path/to/acronyms.txt"
+            )
+        )
 
-	with open('/path/to/english.yaml', "r") as configs:
-       settings = yaml.load(configs, Loader=yaml.FullLoader)
- 
-    transcriber = load(settings)
+
+        
+	
 	
 
 •	These are then loaded and used to run the predict method on the files supplied.
 
-	transcriber = load(settings)
-	
+	transcriber = cfg.load()
+
 	result=transcriber.predict(['/path/to//audio_file1.wav','/path/to//audio_file1.wav'])  #List of files
 
 or
 	
 	result=transcriber.predict(['/path/to//audio/files/directory/'])  #Directory containing audio files
 
+•   The returned transcription object can then be iterated through to get the transcribed tokens, as well as the start and end timestamps for each token.
 
-•	The various model parameters can be changed as in the example yaml file below. Note parameters will vary with transcriber engine. The values below are for DeepScribe used with a KenLM language model
+    for token in result[input].tokens:
+            print(token.text,token.start_time,token.end_time)
 
-english.yaml
+•	The various model parameters can be changed as in the configuration objects:
+
 	
-	transcriber: deepscribe
-	model_path: "/path/to/audio/model/deepscribe-0.3.0.pth"
-	lm_path: "path/to/language/model/financial-0.1.3.trie"
-	punc_path: "/path/to/punctuation/model/punc-0.2.0.pth"
-	acronyms_path: "/path/to/acronyms/file/all.acronyms.txt"
-	lm_alpha: 0.39
-	lm_beta: 0.45
-	device: "cuda"  
+	class DeepscribeDecoderConfig(BaseModel):
+        lm_path = ''   # Path to an (optional) kenlm language model for use with beam search
+        alpha = 0.39 # Language model weight Default is tuned for English
+        beta = 0.45  # Language model word bonus (all words) Default is tuned for English
+        cutoff_top_n = 40    # Keep top cutoff_top_n characters with highest probs in beam search
+        cutoff_prob = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
+        lm_workers = 8  # Number of LM processes to use for beam search
+        beam_width = 32 # Beam width to use for beam search
 
-The values are as follows:
+    class DeepscribeTextPostProcessingConfig(BaseModel):
+        punc_path = ''  # Path to a DeepScribe Punctuation model
+        acronyms_path = ''  # Path to acronym whitelist (collapse and capitalize)
 
-transcriber: transcriber 'engine' / recogniser e.g. DeepScribe, wav2vec, HuBERT
+    class DeepscribeModelConfig(BaseModel):
+        model_path = ''  # Path to acoustic model
 
-model_path: Audio model location
+    class DeepscribeHardwareConfig(BaseModel):
+        cuda = True  # Use CUDA for inference
 
-lm_path: Language model location
+    class DeepscribeConfig(TranscriberConfig):
+        decoder = DeepscribeDecoderConfig()
+        text_postprocessing = DeepscribeTextPostProcessingConfig()
+        model = DeepscribeModelConfig()
+        hardware = DeepscribeHardwareConfig()
 
-acronyms_path: Acronyms file location
-
-lm_alpha: The KenLM language model alpha parameter
-
-lm_beta: The KenLM language model beta parameter
-
-device: cuda or cpu (This is an override - if this is not present, if this is not preent, the api will decide on the basis of whether or not cuda is available in the environment.)
-
-Sample yaml files are supplied in the 'example_configs' directory. These use development environment locations and will need to be set according to the environment in which the api is used.
-
-
-Note: When using a local installation (as in development), it may be convenient to put the api folder in the top level directory of the transcriber, so that you are sure that the local instance files are being used. For example, with DeepScribe, this would be the top level deepscribe-inference installation directory (in the example below, 'deepscribe-inference) **above** the 'deepscribe_inference' directory.
 
 ![image info](./images/api_location.png)
 
