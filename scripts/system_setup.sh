@@ -17,17 +17,28 @@ SCRIPT_DIR=$(cd `dirname $0` && pwd)
 echo $SCRIPT_DIR
 
 
+
 echo "Install Project Dependencies using pip3"
-echo "Package setup for delivery"
-sudo python3 setup.py sdist bdist_wheel
-echo "Install Package"
-pip3 install -I dist/transcriber-api*py3-none-any.whl
-if [[ $? > 0 ]]
+if [ -f requirements/dev.txt ]
 then
-  echo "transcriber-api Installation Failed,  existing System Setup."
-  exit
-else
-  echo "transcriber-apil Installation Done."
+	pip3 install --upgrade -r requirements/dev.txt
+	if [[ $? > 0 ]]
+	then
+		echo "Requirements Installation Failed, existing System Setup."
+		exit
+	else
+		echo "Package setup for delivery"
+		sudo python3 setup.py sdist bdist_wheel
+		echo "Install Package"
+		pip3 install -I dist/transcriber-api*py3-none-any.whl
+		if [[ $? > 0 ]]
+		then
+			echo "Vault Installation Failed,  existing System Setup."
+			exit
+		else
+			echo "Vault Installation Done."
+		fi
+	fi
 fi
 
 if [ $? -eq 0 ]
