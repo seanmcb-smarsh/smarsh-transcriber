@@ -6,6 +6,11 @@ The API script is called transcribers.py and is in a folder called 'api'. Requir
 
 Configuration files can be supplied for a variety of combinations of languages and transcriber engines (e.g. deepscribe, wav2vec, HuBERT) as they become available. A set of example files is provided using the dev area location references.
 
+**Installation**
+
+Ensure you are using python 3.6
+
+    bash install.sh
 
 
 **Running Transcriptions**
