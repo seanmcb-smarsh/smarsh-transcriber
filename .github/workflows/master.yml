@@ -23,10 +23,9 @@ jobs:
     - name: System Configuration
       run: |
         python3 -m pip install --upgrade pip
-        chmod +x scripts/system_setup.sh
         chmod +x scripts/install.sh
         chmod +x scripts/test.sh
-        ./scripts/system_setup.sh
+        ./scripts/install.sh
 
 
     - name: Code Coverage Report
