@@ -8,7 +8,9 @@ Configuration files can be supplied for a variety of combinations of languages a
 
 **Installation**
 
-Ensure you are using python 3.6
+Ensure you are using python 3.6:
+
+    conda create -n <env-name> python=3.6
 
     bash install.sh
 
@@ -42,10 +44,6 @@ These values are then used on the files to be transcribed in the form transcribe
             )
         )
 
-
-        
-	
-	
 
 •	These are then loaded and used to run the predict method on the files supplied.
 
@@ -93,3 +91,26 @@ or
 
 ![image info](./images/api_location.png)
 
+FAQ:
+
+Setup fails with:
+
+    ERROR: Could not find a version that satisfies the requirement deepscribe-inference==0.3.3 (from versions: none)
+    
+    ERROR: No matching distribution found for deepscribe-inference==0.3.3
+
+Try the following three steps:
+
+• Ensure python is version 3.6 with the following command:
+
+    python --version
+
+• Ensure you have exported your artifactory username and API key
+
+    export ARTIFACTORY_USERNAME=username
+    export ARTIFACTORY_PASSWORD=to_your_artifactory_api_key_in_your_artifactory_profile
+
+• Ensure ~/.pip/pip.conf looks like:
+
+    [global]
+    index-url = https://<username>:<api-key>@artifacts.corp.digitalreasoning.com/artifactory/api/pypi/pypi-labs-releases-local/simple
