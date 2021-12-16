@@ -1,0 +1,31 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      CI_TOOLS: ./ci-tools
+      bamboo_hudson_artifactory_key_secret: ${{ secrets.bamboo_hudson_artifactory_key_secret }}
+      
+    steps:
+    
+    - name: Checkout this repo
+      uses: actions/checkout@v2
+      
+    - name: Checkout build tools repo
+      uses: actions/checkout@v2
+      with:
+        repository:  seanmcb-smarsh/forked-build-tools 
+        path: ci-tools
+    
+    - name: Build
+      run: ./ci-tools/package-all.sh
