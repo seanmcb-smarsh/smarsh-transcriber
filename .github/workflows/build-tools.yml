@@ -22,12 +22,18 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        ref: ${{ github.ref_name }}
       
     - name: Checkout build tools repo
       uses: actions/checkout@v2
       with:
         repository:  seanmcb-smarsh/forked-build-tools 
         path: ci-tools
-    
+
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT" 
+
     - name: Build
       run: ./ci-tools/package-all.sh
