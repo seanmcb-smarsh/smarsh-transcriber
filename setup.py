@@ -1,21 +1,21 @@
-__copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
-from setuptools import setup
-from setuptools import find_packages
+
+from setuptools import setup, find_packages
+
+
+def find_version():
+    tag = os.environ.get("TAG", "0.0.0")
+    return tag
+
 
 setup(
-    name="transcriber-api",
-    python_requires=">=3.6",
-    version="0.0.0",
-    author="Smarsh Inc",
-    author_email="support@smarsh.com",
-    url="https://www.smarsh.com",
-    description="API for transcription",
+    name='transcriber_api',
+    version=find_version(),
+    description='Speech API',
+    author='Smarsh',
     packages=find_packages(),
-    include_package_data=True,
     zip_safe=False,
-)
+    install_requires=[
+          'deepscribe-inference==0.3.3',
+          'pydantic'
+      ])

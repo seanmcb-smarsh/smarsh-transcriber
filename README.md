@@ -10,12 +10,12 @@ Configuration files can be supplied for a variety of combinations of languages a
 
 Ensure you are using python 3.6
 
-    bash scripts/install.sh
+    bash install.sh
 
 To run tests:
     
-    bash scripts/download_english_models.sh
-    bash scripts/download_test_data.sh
+    bash download_english_models.sh
+    bash download_test_data.sh
     pytest tests
 
 **Running Transcriptions**
