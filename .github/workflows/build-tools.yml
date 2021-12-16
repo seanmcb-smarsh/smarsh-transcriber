@@ -17,7 +17,11 @@ jobs:
       bamboo_hudson_artifactory_key_secret: ${{ secrets.bamboo_hudson_artifactory_key_secret }}
       
     steps:
-    
+     - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT" 
+   
     - name: Checkout this repo
       uses: actions/checkout@v2
       with:
@@ -29,11 +33,6 @@ jobs:
       with:
         repository:  seanmcb-smarsh/forked-build-tools 
         path: ci-tools
-
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJSON(github) }}
-      run: echo "$GITHUB_CONTEXT" 
 
     - name: Build
       run: ./ci-tools/package-all.sh
