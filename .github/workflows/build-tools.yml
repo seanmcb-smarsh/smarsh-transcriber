@@ -17,7 +17,7 @@ jobs:
       bamboo_hudson_artifactory_key_secret: ${{ secrets.bamboo_hudson_artifactory_key_secret }}
       
     steps:
-     - name: Dump GitHub context
+    - name: Dump GitHub context
       env:
         GITHUB_CONTEXT: ${{ toJSON(github) }}
       run: echo "$GITHUB_CONTEXT" 
