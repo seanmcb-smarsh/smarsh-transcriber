@@ -20,6 +20,7 @@ jobs:
     
     - name: Checkout this repo
       uses: actions/checkout@v2
+      fetch-depth: 0
       
     - name: Checkout build tools repo
       uses: actions/checkout@v2
