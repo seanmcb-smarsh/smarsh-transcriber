@@ -16,6 +16,9 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-          'deepscribe-inference==0.3.3',
-          'pydantic'
+        "torch==1.9.0",
+        "torchvision==0.10.0",
+        "torchaudio==0.9.0",
+        "deepscribe-inference==0.3.3",
+        "pydantic",
       ])

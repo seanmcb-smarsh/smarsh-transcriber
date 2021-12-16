@@ -1,0 +1,9 @@
+.coverage
+__pycache__
+build
+dist
+*.egg-info
+venv
+reports
+tests/test_models
+tests/test_audio
