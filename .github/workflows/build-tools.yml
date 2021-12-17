@@ -29,6 +29,7 @@ jobs:
       with:
         repository:  Smarsh/build-tools 
         path: ci-tools
+        ref: master
 
     - name: Build
       run: ./ci-tools/package-all.sh
