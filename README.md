@@ -6,21 +6,53 @@ The API script is called transcribers.py and is in a folder called 'api'. Requir
 
 Configuration files can be supplied for a variety of combinations of languages and transcriber engines (e.g. deepscribe, wav2vec, HuBERT) as they become available. A set of example files is provided using the dev area location references.
 
-**Installation**
+## Dependencies
 
-Ensure you are using python 3.6:
+Dependencies required to run the library in production should be noted in the `install_requires` section of `setup.py`.
 
-    conda create -n <env-name> python=3.6
+Dependencies required to test the library or for development purposes only, should be noted in the `dev` section of `extras_require` in `setup.py`
 
-    bash install.sh
+
+*Do not create or use requirements.txt*. This is not supported for automated builds and having dependencies specified in more than once place is a maintaince problem.
+
+## Building
+
+Before pushing any code you should ensure it builds and passes tests.
+To do this run the following command
+
+    make python-transcriber-api
+
+The above step does a number of tasks:
+1. Creates a builder docker image with cmake installed
+    * This is required to build `sentencepiece`, which is a dependency of this library. 
+    * The docker image will also install all the required dependencies for this python library in advance of building the actual python wheel. Locally, this will mean that if the python build fails, all the dependencies won't need to be redownloaded and installed again once the code is fixed; they are cached in the docker image.
+    * *Any* change to `setup.py` will invalidate this cache and result in the docker image being rebuilt. If no changes are made to `setup.py` between rebuilds then the docker image will use the cached layers and build immediately.
+1. Download english models, in preparation for testing.
+1. Download english audio, in preparation for testing.
+1. Build the python wheel for this library, using the docker image from point 1.
+    * Building includes packaging, unit tests, code coverage, code analysis and security analysis.
+1. In CICD, the resultant artifact will be published to artifactory, this will not happen for local developer builds.
+
+## Local/Developer Installation
+
+Ensure you are using python 3.6.
+You can either install from the wheel produced in the previous *Building* section, otherwise you can do:
+
+    python3 -m venv venv
+    source venv/bin/activate
+    pip3 install -e .[dev]
+
+Note: The first step is only ever required the first time you clone and do the first installation and can be ignored in followed installations.
+
+Linux is the supported operating system for this library. All dependencies for this library are supported and linux and should be available on artifactory. If you are not using Linux (for example MacOS), you may have to build some of the dependencies yourself. 
 
 To run tests:
     
     bash download_english_models.sh
     bash download_test_data.sh
-    pytest tests
+    pytest -v --cov-branch --cov-report=term --cov=. --cov-report=term
 
-**Running Transcriptions**
+## Running Transcriptions
 
 The transcriptions can be run as follows:
 
