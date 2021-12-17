@@ -30,7 +30,7 @@ jobs:
         repository: Smarsh/build-tools
         path: ci-tools
         ref: master
-        token: ${{ github.token }}
+        token: ${{ secrets.BUILD_TOOLS_TOKEN }}
 
 
     - name: Build
