@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build and publish
 
 on:
   push:
@@ -17,11 +17,7 @@ jobs:
       bamboo_hudson_artifactory_key_secret: ${{ secrets.bamboo_hudson_artifactory_key_secret }}
       
     steps:
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJSON(github) }}
-      run: echo "$GITHUB_CONTEXT" 
-   
+
     - name: Checkout this repo
       uses: actions/checkout@v2
       with:
@@ -31,7 +27,7 @@ jobs:
     - name: Checkout build tools repo
       uses: actions/checkout@v2
       with:
-        repository:  seanmcb-smarsh/forked-build-tools 
+        repository:  Smarsh/build-tools 
         path: ci-tools
 
     - name: Build
