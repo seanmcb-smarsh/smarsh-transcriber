@@ -1,7 +1,5 @@
 name: Build and publish
-permissions:
-  id-token: write
-  contents: read
+
 on:
   push:
     branches: [ master ]
@@ -32,6 +30,8 @@ jobs:
         repository: Smarsh/build-tools
         path: ci-tools
         ref: master
+        token: ${{ github.token }}
+
 
     - name: Build
       run: ./ci-tools/package-all.sh
