@@ -21,7 +21,11 @@ class Test(TestCase):
         input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
         result = transcriber.predict(input)
         for token in result[input].tokens:
-            print(token.text,token.start_time,token.end_time)
+            assert type(token.text)==str
+            assert type(token.start_time)==int
+            assert type(token.end_time)==int
+            assert len(token.text) > 0
+            assert token.end_time > token.start_time
 
     # def test_lid(self):
     #     lid = lid_factory('example_configs/lid.yaml')

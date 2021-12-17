@@ -39,7 +39,7 @@ class DeepscribeModelConfig(BaseModel):
     model_path = ''  # Path to acoustic model
 
 class DeepscribeHardwareConfig(BaseModel):
-    cuda = True  # Use CUDA for inference
+    device = None  # Use CPU or GPU for inference.  If None, use a GPU if is present, otherwise CPU
 
 class DeepscribeConfig(TranscriberConfig):
     decoder = DeepscribeDecoderConfig()
@@ -92,8 +92,13 @@ class DeepscribeTranscriber:
         decoder.beta: float weight for beta e.g. 0.45
         text_postprocessing.punc_path: string path to punctuation models e.g. "/share/models/english/punc-0.2.0.pth"
         text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
-        hardware.cuda: boolean specify whether the engine should run on a GPU e.g. true
+        hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
+        if config.hardware.device==None:
+            dev = "gpu" if torch.cuda.is_available() else "cpu"
+        else:
+            dev = config.hardware.device
+
         self.inf_cfg = InferenceConfig(
             decoder = DecoderConfig(
                 lm_path = config.decoder.lm_path,
@@ -112,10 +117,10 @@ class DeepscribeTranscriber:
                 model_path = config.model.model_path
             ),
             hardware = HardwareConfig(
-                cuda = config.hardware.cuda
+                device = dev
             )
         )
-        self.device = torch.device("cuda" if self.inf_cfg.hardware.cuda else "cpu")
+        self.device = torch.device(dev)
         self.model = load_model(
             model_path=self.inf_cfg.model.model_path,
             precision=self.inf_cfg.hardware.precision,
@@ -140,6 +145,10 @@ class DeepscribeTranscriber:
         @dataclass
         class TranscriptionResult:
             tokens: Iterable[TranscriptionToken]
+
+        Example of result:
+
+        TranscriptionResult()
         """
         if isinstance(input_paths, str):
             input_paths = [input_paths]
