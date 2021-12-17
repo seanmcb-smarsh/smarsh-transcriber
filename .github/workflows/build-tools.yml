@@ -27,7 +27,7 @@ jobs:
     - name: Checkout build tools repo
       uses: actions/checkout@v2
       with:
-        repository: seanmcb-smarsh/forked-build-tools 
+        repository: Smarsh/build-tools
         path: ci-tools
         ref: master
 
