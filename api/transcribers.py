@@ -39,7 +39,7 @@ class DeepscribeModelConfig(BaseModel):
     model_path = ''  # Path to acoustic model
 
 class DeepscribeHardwareConfig(BaseModel):
-    device = None  # Use CPU or GPU for inference.  If None, use a GPU if is present, otherwise CPU
+    device = ''  # Use CPU or GPU for inference.  If '', use a GPU if is present, otherwise CPU
 
 class DeepscribeConfig(TranscriberConfig):
     decoder = DeepscribeDecoderConfig()
@@ -94,7 +94,7 @@ class DeepscribeTranscriber:
         text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
         hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
-        if config.hardware.device==None:
+        if config.hardware.device=='':
             dev = "gpu" if torch.cuda.is_available() else "cpu"
         else:
             dev = config.hardware.device
@@ -148,7 +148,13 @@ class DeepscribeTranscriber:
 
         Example of result:
 
-        TranscriptionResult()
+        TranscriptionResult(
+            tokens=[
+                TranscriptionToken(text='cat', start_time=12, end_time=45),
+                TranscriptionToken(text='in', start_time=48, end_time=56),
+                TranscriptionToken(text='the', start_time=60, end_time=66),
+                TranscriptionToken(text='hat', start_time=72, end_time=84)
+            ])
         """
         if isinstance(input_paths, str):
             input_paths = [input_paths]

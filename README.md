@@ -87,10 +87,27 @@ or
 	
 	result=transcriber.predict(['/path/to//audio/files/directory/'])  #Directory containing audio files
 
-•   The returned transcription object can then be iterated through to get the transcribed tokens, as well as the start and end timestamps for each token.
+•   predict() returns a TranscriptionResult.
 
-    for token in result[input].tokens:
-            print(token.text,token.start_time,token.end_time)
+        @dataclass
+        class TranscriptionToken:
+            text: str
+            start_time: int
+            end_time: int
+
+        @dataclass
+        class TranscriptionResult:
+            tokens: Iterable[TranscriptionToken]
+
+        Example of result:
+
+        TranscriptionResult(
+            tokens=[
+                TranscriptionToken(text='cat', start_time=12, end_time=45),
+                TranscriptionToken(text='in', start_time=48, end_time=56),
+                TranscriptionToken(text='the', start_time=60, end_time=66),
+                TranscriptionToken(text='hat', start_time=72, end_time=84)
+            ])
 
 •	The various model parameters can be changed as in the configuration objects:
 
