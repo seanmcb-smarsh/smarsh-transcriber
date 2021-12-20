@@ -117,7 +117,7 @@ class DeepscribeTranscriber:
                 model_path = config.model.model_path
             ),
             hardware = HardwareConfig(
-                device = dev
+                cuda = dev=="gpu"
             )
         )
         self.device = torch.device(dev)
