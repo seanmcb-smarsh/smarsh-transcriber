@@ -20,12 +20,15 @@ class Test(TestCase):
         transcriber = cfg.load()
         input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
         result = transcriber.predict(input)
+        prev_end = -1
         for token in result[input].tokens:
             assert type(token.text)==str
             assert type(token.start_time)==int
             assert type(token.end_time)==int
             assert len(token.text) > 0
             assert token.end_time > token.start_time
+            assert token.start_time > prev_end
+            prev_end = token.end_time
 
     # def test_lid(self):
     #     lid = lid_factory('example_configs/lid.yaml')
