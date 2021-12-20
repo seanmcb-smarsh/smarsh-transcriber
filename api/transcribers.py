@@ -168,7 +168,7 @@ class DeepscribeTranscriber:
         final_results = {}
         for input in input_paths:
             text = list(raw_results[input]['transcript'])
-            times = [0] + raw_results[input]['timestamps']
+            times = [0] + int(1000*float(raw_results[input]['timestamps']))
             results = []
             for i in range(len(text)):
                 results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))
