@@ -28,7 +28,7 @@ class DeepscribeDecoderConfig(BaseModel):
     beta = 0.45  # Language model word bonus (all words) Default is tuned for English
     cutoff_top_n = 40    # Keep top cutoff_top_n characters with highest probs in beam search
     cutoff_prob = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
-    lm_workers = 8  # Number of LM processes to use for beam search
+    lm_workers = 2  # Number of LM processes to use for beam search
     beam_width = 32 # Beam width to use for beam search
 
 class DeepscribeTextPostProcessingConfig(BaseModel):
@@ -167,8 +167,8 @@ class DeepscribeTranscriber:
 
         final_results = {}
         for input in input_paths:
-            text = list(raw_results[input]['transcript'])
-            times = [0] + int(1000*float(raw_results[input]['timestamps']))
+            text = raw_results[input]['transcript'].split()
+            times = [0] + [int(1000*float(x)) for x in raw_results[input]['timestamps']]
             results = []
             for i in range(len(text)):
                 results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))

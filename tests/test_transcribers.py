@@ -7,7 +7,8 @@ class Test(TestCase):
     def test_transcribe(self):
         cfg = DeepscribeConfig(
             decoder=DeepscribeDecoderConfig(
-                lm_path = "tests/test_models/en/financial-0.1.3.trie"
+                lm_path = "tests/test_models/en/financial-0.1.3.trie",
+                lm_workers = 2
             ),
             model=DeepscribeModelConfig(
                 model_path="tests/test_models/en/deepscribe-0.3.0.pth"
@@ -22,12 +23,13 @@ class Test(TestCase):
         result = transcriber.predict(input)
         prev_end = -1
         for token in result[input].tokens:
+            print(token)
             assert type(token.text)==str
             assert type(token.start_time)==int
             assert type(token.end_time)==int
             assert len(token.text) > 0
-            assert token.end_time > token.start_time
-            assert token.start_time > prev_end
+            assert token.end_time >= token.start_time
+            assert token.start_time >= prev_end
             prev_end = token.end_time
 
     # def test_lid(self):
