@@ -28,7 +28,7 @@ class DeepscribeDecoderConfig(BaseModel):
     beta = 0.45  # Language model word bonus (all words) Default is tuned for English
     cutoff_top_n = 40    # Keep top cutoff_top_n characters with highest probs in beam search
     cutoff_prob = 1.0  # Cutoff probability in pruning. 1.0 means no pruning
-    lm_workers = 8  # Number of LM processes to use for beam search
+    lm_workers = 2  # Number of LM processes to use for beam search
     beam_width = 32 # Beam width to use for beam search
 
 class DeepscribeTextPostProcessingConfig(BaseModel):
@@ -39,7 +39,7 @@ class DeepscribeModelConfig(BaseModel):
     model_path = ''  # Path to acoustic model
 
 class DeepscribeHardwareConfig(BaseModel):
-    cuda = True  # Use CUDA for inference
+    device = ''  # Use CPU or GPU for inference.  If '', use a GPU if is present, otherwise CPU
 
 class DeepscribeConfig(TranscriberConfig):
     decoder = DeepscribeDecoderConfig()
@@ -92,8 +92,13 @@ class DeepscribeTranscriber:
         decoder.beta: float weight for beta e.g. 0.45
         text_postprocessing.punc_path: string path to punctuation models e.g. "/share/models/english/punc-0.2.0.pth"
         text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
-        hardware.cuda: boolean specify whether the engine should run on a GPU e.g. true
+        hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
+        if config.hardware.device=='':
+            dev = "gpu" if torch.cuda.is_available() else "cpu"
+        else:
+            dev = config.hardware.device
+
         self.inf_cfg = InferenceConfig(
             decoder = DecoderConfig(
                 lm_path = config.decoder.lm_path,
@@ -112,10 +117,10 @@ class DeepscribeTranscriber:
                 model_path = config.model.model_path
             ),
             hardware = HardwareConfig(
-                cuda = config.hardware.cuda
+                cuda = dev=="gpu"
             )
         )
-        self.device = torch.device("cuda" if self.inf_cfg.hardware.cuda else "cpu")
+        self.device = torch.device(dev)
         self.model = load_model(
             model_path=self.inf_cfg.model.model_path,
             precision=self.inf_cfg.hardware.precision,
@@ -140,6 +145,16 @@ class DeepscribeTranscriber:
         @dataclass
         class TranscriptionResult:
             tokens: Iterable[TranscriptionToken]
+
+        Example of result:
+
+        TranscriptionResult(
+            tokens=[
+                TranscriptionToken(text='cat', start_time=12, end_time=45),
+                TranscriptionToken(text='in', start_time=48, end_time=56),
+                TranscriptionToken(text='the', start_time=60, end_time=66),
+                TranscriptionToken(text='hat', start_time=72, end_time=84)
+            ])
         """
         if isinstance(input_paths, str):
             input_paths = [input_paths]
@@ -152,8 +167,8 @@ class DeepscribeTranscriber:
 
         final_results = {}
         for input in input_paths:
-            text = list(raw_results[input]['transcript'])
-            times = [0] + raw_results[input]['timestamps']
+            text = raw_results[input]['transcript'].split()
+            times = [0] + [int(1000*float(x)) for x in raw_results[input]['timestamps']]
             results = []
             for i in range(len(text)):
                 results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))
