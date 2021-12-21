@@ -150,10 +150,11 @@ class DeepscribeTranscriber:
 
         TranscriptionResult(
             tokens=[
-                TranscriptionToken(text='cat', start_time=12, end_time=45),
-                TranscriptionToken(text='in', start_time=48, end_time=56),
-                TranscriptionToken(text='the', start_time=60, end_time=66),
-                TranscriptionToken(text='hat', start_time=72, end_time=84)
+                TranscriptionToken(text='The', start_time=240, end_time=280)
+                TranscriptionToken(text='cat', start_time=480, end_time=600)
+                TranscriptionToken(text='in', start_time=880, end_time=920)
+                TranscriptionToken(text='the', start_time=1040, end_time=1080)
+                TranscriptionToken(text='hat.', start_time=1220, end_time=1340)
             ])
         """
         if isinstance(input_paths, str):
@@ -167,11 +168,32 @@ class DeepscribeTranscriber:
 
         final_results = {}
         for input in input_paths:
-            text = raw_results[input]['transcript'].split()
-            times = [0] + [int(1000*float(x)) for x in raw_results[input]['timestamps']]
-            results = []
-            for i in range(len(text)):
-                results.append(TranscriptionToken(text=text[i], start_time=times[i], end_time=times[i+1]))
-            final_results.update({input: TranscriptionResult(results)})
+            text = raw_results[input]['transcript']
+            times = raw_results[input]['timestamps']
+            assert len(text)==len(times)
+            in_word = False
+            start = 0
+            end = 0
+            word = ''
+            tokens = []
+            for ch,tm in zip(text,times):
+                if ch==' ' and in_word:
+                    # we just finished a word
+                    tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
+                    word = ''
+                    in_word = False
+                elif not in_word:
+                    # we are starting a new word
+                    start = int(1000*float(tm))
+                    word = word + ch
+                    in_word = True
+                else:
+                    # we are inside a word
+                    end = int(1000*float(tm))
+                    word = word + ch
+            if in_word:
+                # final word
+                tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
+            final_results.update({input: TranscriptionResult(tokens)})
         return final_results
 

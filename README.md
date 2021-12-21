@@ -35,6 +35,13 @@ The above step does a number of tasks:
 
 ## Local/Developer Installation
 
+Install build-tools.
+    git clone https://github.com/Smarsh/build-tools
+    export CI_TOOLS=<path to build-tools>
+    export ARTIFACTORY_USERNAME=<your user name>
+    export ARTIFACTORY_PASSPORT=<your password or key>
+    make docker-login
+    
 Ensure you are using python 3.6.
 You can either install from the wheel produced in the previous *Building* section, otherwise you can do:
 
@@ -103,10 +110,11 @@ or
 
         TranscriptionResult(
             tokens=[
-                TranscriptionToken(text='cat', start_time=12, end_time=45),
-                TranscriptionToken(text='in', start_time=48, end_time=56),
-                TranscriptionToken(text='the', start_time=60, end_time=66),
-                TranscriptionToken(text='hat', start_time=72, end_time=84)
+                TranscriptionToken(text='The', start_time=240, end_time=280)
+                TranscriptionToken(text='cat', start_time=480, end_time=600)
+                TranscriptionToken(text='in', start_time=880, end_time=920)
+                TranscriptionToken(text='the', start_time=1040, end_time=1080)
+                TranscriptionToken(text='hat.', start_time=1220, end_time=1340)
             ])
 
 •	The various model parameters can be changed as in the configuration objects:

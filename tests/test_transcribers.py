@@ -2,6 +2,19 @@ from unittest import TestCase
 
 from api.transcribers import DeepscribeConfig, DeepscribeDecoderConfig, DeepscribeTextPostProcessingConfig, DeepscribeModelConfig
 
+def validate_result(result):
+    for input in result.keys():
+        prev_end = -1
+        for token in result[input].tokens:
+            print(token)
+            assert type(token.text)==str
+            assert type(token.start_time)==int
+            assert type(token.end_time)==int
+            assert len(token.text) > 0
+            assert token.end_time > token.start_time
+            assert token.start_time > prev_end
+            prev_end = token.end_time
+            
 class Test(TestCase):
 
     def test_transcribe(self):
@@ -19,30 +32,7 @@ class Test(TestCase):
             )
         )
         transcriber = cfg.load()
-        input = "tests/test_audio/wav/downloaded/fightclub_with_silence.wav"
+        input = "tests/the_cat_in_the_hat.wav" 
         result = transcriber.predict(input)
-        prev_end = -1
-        for token in result[input].tokens:
-            print(token)
-            assert type(token.text)==str
-            assert type(token.start_time)==int
-            assert type(token.end_time)==int
-            assert len(token.text) > 0
-            assert token.end_time >= token.start_time
-            assert token.start_time >= prev_end
-            prev_end = token.end_time
+        validate_result(result)
 
-    # def test_lid(self):
-    #     lid = lid_factory('example_configs/lid.yaml')
-    #     result = lid.predict('data/english.wav')
-    #     print(result["data/english.wav"]["label"])
-    #
-    # def test_lid_intervals(self):
-    #     lid = lid_factory('example_configs/lid_intervals.yaml')
-    #     result = lid.predict({'data/english.wav':[[0, 5], [6, 10]])
-    #     print(result["data/english.wav"]["label"])
-    #
-    # def test_vad(self):
-    #     vad = vad_factory('example_configs/vad.yaml')
-    #     result = vad.predict('data/english.wav')
-    #     print(result["data/english.wav"]["intervals"])
