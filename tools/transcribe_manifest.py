@@ -1,4 +1,5 @@
 import json
+import sys
 
 from api.transcribers import DeepscribeConfig, DeepscribeDecoderConfig, DeepscribeModelConfig, \
     DeepscribeTextPostProcessingConfig
@@ -17,11 +18,14 @@ cfg = DeepscribeConfig(
     )
 )
 transcriber = cfg.load()
-with open("/audio-data/datasets/english/test/commonvoice_v1/mozilla_valid/mozilla_valid_test.jsonl","r") as f:
+with open(sys.argv[1],"r") as f:
     l = list(f)
     for s in l:
         x = json.loads(s)
         r = transcriber.predict(x["speech_path"])
         with open(x["text_path"]) as ft:
             txt = ft.read()
-            print(r[x["speech_path"]].tokens,txt)
+            txt2 = ''
+            for tok in r[x["speech_path"]].tokens:
+                txt2 = txt2 + tok.text + ' '
+            print(txt+' --> '+txt2)
