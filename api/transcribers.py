@@ -95,7 +95,7 @@ class DeepscribeTranscriber:
         hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
         if config.hardware.device=='':
-            dev = "gpu" if torch.cuda.is_available() else "cpu"
+            dev = "cuda" if torch.cuda.is_available() else "cpu"
         else:
             dev = config.hardware.device
 
@@ -117,7 +117,7 @@ class DeepscribeTranscriber:
                 model_path = config.model.model_path
             ),
             hardware = HardwareConfig(
-                cuda = dev=="gpu"
+                cuda = dev=="cuda"
             )
         )
         self.device = torch.device(dev)
