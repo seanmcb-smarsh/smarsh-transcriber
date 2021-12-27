@@ -18,14 +18,19 @@ cfg = DeepscribeConfig(
     )
 )
 transcriber = cfg.load()
+output = {}
 with open(sys.argv[1],"r") as f:
     l = list(f)
     for s in l:
         x = json.loads(s)
-        r = transcriber.predict(x["speech_path"])
+        wav = x["speech_path"]
+        r = transcriber.predict(wav)
         with open(x["text_path"]) as ft:
             txt = ft.read()
             txt2 = ''
             for tok in r[x["speech_path"]].tokens:
                 txt2 = txt2 + tok.text + ' '
             print(txt+' --> '+txt2)
+            assert not wav in output
+            output[wav] = { 'truth':txt, 'transcription':txt2 }
+
