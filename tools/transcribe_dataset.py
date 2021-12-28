@@ -1,7 +1,6 @@
 import json
 import sys
-from pydantic import BaseModel
-from pydantic_yaml import YamlModel
+import yaml
 
 from api.transcribers import DeepscribeConfig, DeepscribeDecoderConfig, DeepscribeModelConfig, \
     DeepscribeTextPostProcessingConfig
@@ -20,13 +19,10 @@ cfg = DeepscribeConfig(
     )
 )
 
-class OuterModel(YamlModel):
-    inner: BaseModel
-    def __init__(self,cfg):
-        self.inner = cfg
-
-o = OuterModel(cfg)
-print(o.yaml())
+with open(sys.args[1],"r") as y:
+    cfg = yaml.load(y)
+    o = DeepscribeConfig(cfg)
+    print(o)
 
 """
 
