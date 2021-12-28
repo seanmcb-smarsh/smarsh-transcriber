@@ -11,7 +11,7 @@ transcriber = load_yaml(config_file)
 
 with open(dataset,"r") as inp:
     with open(result, "w") as outp:
-        l = list(inp)[:5]
+        l = list(inp)
         for s in l:
             x = json.loads(s)
             wav = x["speech_path"]
@@ -24,5 +24,5 @@ with open(dataset,"r") as inp:
                 print(txt+' --> '+txt2)
                 result_obj = { 'input':wav, 'truth':txt, 'transcription':txt2 }
                 result_line = json.dumps(result_obj)
-                outp.writelines([result_line])
-
+                outp.write(result_line+'\n')
+                outp.flush()
