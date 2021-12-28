@@ -1,9 +1,8 @@
-DeepscribeConfig:
-    decoder:
-        lm_path: tests/test_models/en/financial-0.1.3.trie
-        lm_workers: 2
-    model:
-        model_path: tests/test_models/en/deepscribe-0.3.0.pth
-    text_postprocessing:
-        punc_path: tests/test_models/en/punc-0.2.0.pth
-        acronyms_path: tests/test_models/en/all.acronyms.txt
+decoder:
+    lm_path: tests/test_models/en/financial-0.1.3.trie
+    lm_workers: 2
+model:
+    model_path: tests/test_models/en/deepscribe-0.3.0.pth
+text_postprocessing:
+    punc_path: tests/test_models/en/punc-0.2.0.pth
+    acronyms_path: tests/test_models/en/all.acronyms.txt

@@ -3,9 +3,9 @@ import sys
 
 from api.transcribers import load_yaml
 
-config_file = sys.args[1]
-dataset = sys.args[2]
-result = sys.args[3]
+config_file = sys.argv[1]
+dataset = sys.argv[2]
+result = sys.argv[3]
 
 transcriber = load_yaml(config_file)
 
