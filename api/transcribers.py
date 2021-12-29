@@ -61,8 +61,10 @@ class AWSConfig(BaseModel):
 
 def load_yaml(yaml_file: str):
     with open(yaml_file, "r") as y:
-        dict = yaml.load(y)
-        cfg = DeepscribeConfig(dict)
+        dict = yaml.load(y,Loader=yaml.FullLoader)
+        print(dict)
+        cfg = DeepscribeConfig(**dict)
+        print(cfg)
         return cfg.load()
 
 
