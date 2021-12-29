@@ -1,3 +1,5 @@
+__copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
+
 import torch
 import yaml
 

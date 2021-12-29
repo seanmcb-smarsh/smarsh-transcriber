@@ -1,3 +1,5 @@
+__copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
+
 from unittest import TestCase
 
 from api.transcribers import load_yaml
