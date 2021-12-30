@@ -17,6 +17,8 @@ with open(jsonl_file,'r') as inp:
         l = json.loads(line)
         truths.append(TextProcessing().process_text(l['truth'], lang))
         trans.append(TextProcessing().process_text(l['transcription'], lang))
+        #print(TextProcessing().process_text(l['truth'],lang))
+        #print(TextProcessing().process_text(l['transcription'],lang))
 
-print(GenerateMatrices(lang)(truths, trans))
+print("WER =",GenerateMatrices(lang)(truths, trans).WER)
 
