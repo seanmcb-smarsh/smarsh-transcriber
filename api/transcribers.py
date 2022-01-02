@@ -1,4 +1,7 @@
+__copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
+
 import torch
+import yaml
 
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
@@ -57,6 +60,15 @@ class Wav2VecConfig(BaseModel):
 class AWSConfig(BaseModel):
     def load(self):
         raise NotImplementedError('AWS is not implemented')
+
+def load_yaml(yaml_file: str):
+    with open(yaml_file, "r") as y:
+        dict = yaml.load(y,Loader=yaml.FullLoader)
+        print(dict)
+        cfg = DeepscribeConfig(**dict)
+        print(cfg)
+        return cfg.load()
+
 
 @dataclass
 class TranscriptionToken:

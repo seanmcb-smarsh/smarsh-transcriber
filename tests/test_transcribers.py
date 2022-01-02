@@ -1,6 +1,8 @@
+__copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
+
 from unittest import TestCase
 
-from api.transcribers import DeepscribeConfig, DeepscribeDecoderConfig, DeepscribeTextPostProcessingConfig, DeepscribeModelConfig
+from api.transcribers import load_yaml
 
 def validate_result(result):
     for input in result.keys():
@@ -17,21 +19,8 @@ def validate_result(result):
             
 class Test(TestCase):
 
-    def test_transcribe(self):
-        cfg = DeepscribeConfig(
-            decoder=DeepscribeDecoderConfig(
-                lm_path = "tests/test_models/en/financial-0.1.3.trie",
-                lm_workers = 2
-            ),
-            model=DeepscribeModelConfig(
-                model_path="tests/test_models/en/deepscribe-0.3.0.pth"
-            ),
-            text_postprocessing=DeepscribeTextPostProcessingConfig(
-                punc_path="tests/test_models/en/punc-0.2.0.pth",
-                acronyms_path="tests/test_models/en/all.acronyms.txt"
-            )
-        )
-        transcriber = cfg.load()
+    def test_english(self):
+        transcriber = load_yaml("config/english.yaml")
         input = "tests/the_cat_in_the_hat.wav" 
         result = transcriber.predict(input)
         validate_result(result)
