@@ -45,6 +45,7 @@ class DeepscribeHardwareConfig(BaseModel):
     device = ''  # Use CPU or GPU for inference.  If '', use a GPU if is present, otherwise CPU
 
 class DeepscribeConfig(TranscriberConfig):
+    language = 'language must be specified'
     decoder = DeepscribeDecoderConfig()
     text_postprocessing = DeepscribeTextPostProcessingConfig()
     model = DeepscribeModelConfig()
@@ -64,10 +65,15 @@ class AWSConfig(BaseModel):
 def load_yaml(yaml_file: str):
     with open(yaml_file, "r") as y:
         dict = yaml.load(y,Loader=yaml.FullLoader)
-        print(dict)
-        cfg = DeepscribeConfig(**dict)
-        print(cfg)
-        return cfg.load()
+        if len(dict.keys()) != 1:
+            raise RuntimeError("Configuration can only specify 1 type of Transcriber")
+        clz = list(dict.keys())[0]
+        args = dict[clz]
+        try:
+            cfg = globals()[clz](**args)
+            return cfg.load()
+        except KeyError:
+            raise RuntimeError("Unknown Transcriber config: "+clz)
 
 
 @dataclass
@@ -85,6 +91,9 @@ class TranscriptionResult:
     Common transcription result.  Returned by all types of transcribers
     """
     tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
+
+WordLanguages = ['en']
+CharLanguages = ['zh','jp']
 
 class DeepscribeTranscriber:
     """
@@ -106,6 +115,10 @@ class DeepscribeTranscriber:
         text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
         hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
+        self.language = config.language
+        if not self.language in WordLanguages and not self.language in CharLanguages:
+            raise NotImplementedError('Language not implemented: '+self.language)
+
         if config.hardware.device=='':
             dev = "cuda" if torch.cuda.is_available() else "cpu"
         else:
@@ -140,6 +153,53 @@ class DeepscribeTranscriber:
         self.decoder = load_decoder(
             decoder_cfg=self.inf_cfg.decoder,
             labels=self.model.labels)
+
+    def _word_result(self,text,times):
+        in_word = False
+        start = 0
+        end = 0
+        word = ''
+        tokens = []
+        for ch,tm in zip(text,times):
+            if ch==' ' and in_word:
+                # we just finished a word
+                tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
+                word = ''
+                in_word = False
+            elif not in_word:
+                # we are starting a new word
+                start = int(1000*float(tm))
+                word = word + ch
+                in_word = True
+            else:
+                # we are inside a word
+                end = int(1000*float(tm))
+                word = word + ch
+        if in_word:
+            # final word
+            tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
+        return TranscriptionResult(tokens)
+
+    def _char_result(self,text,times):
+        tokens = []
+        start = 0
+        end = 0
+        prev = None
+        for ch,tm in zip(text,times):
+            end = int(1000 * float(tm))
+            if not prev is None:
+                tokens.append(TranscriptionToken(text=prev,start_time=start,end_time=end))
+            start = end
+            prev = ch
+        if not prev is None:
+            tokens.append(TranscriptionToken(text=prev, start_time=start, end_time=end))
+        return TranscriptionResult(tokens)
+
+    def _process_result(self,raw_result):
+        text = raw_result['transcript']
+        times = raw_result['timestamps']
+        assert len(text) == len(times)
+        return self._word_result(text, times) if self.language in WordLanguages else self._char_result(text, times)
 
     def predict(self,input_paths: Iterable[str]) -> Mapping[str, TranscriptionResult]:
         """
@@ -177,35 +237,7 @@ class DeepscribeTranscriber:
             decoder=self.decoder,
             cfg=self.inf_cfg,
             device=self.device)
+        return {input: self._process_result(raw_results[input]) for input in input_paths}
 
-        final_results = {}
-        for input in input_paths:
-            text = raw_results[input]['transcript']
-            times = raw_results[input]['timestamps']
-            assert len(text)==len(times)
-            in_word = False
-            start = 0
-            end = 0
-            word = ''
-            tokens = []
-            for ch,tm in zip(text,times):
-                if ch==' ' and in_word:
-                    # we just finished a word
-                    tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
-                    word = ''
-                    in_word = False
-                elif not in_word:
-                    # we are starting a new word
-                    start = int(1000*float(tm))
-                    word = word + ch
-                    in_word = True
-                else:
-                    # we are inside a word
-                    end = int(1000*float(tm))
-                    word = word + ch
-            if in_word:
-                # final word
-                tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
-            final_results.update({input: TranscriptionResult(tokens)})
-        return final_results
+
 
