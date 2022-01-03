@@ -69,9 +69,11 @@ def load_yaml(yaml_file: str):
             raise RuntimeError("Configuration can only specify 1 type of Transcriber")
         clz = list(dict.keys())[0]
         args = dict[clz]
-        cfg = globals()[clz](**args)
-        print(cfg)
-        return cfg.load()
+        try:
+            cfg = globals()[clz](**args)
+            return cfg.load()
+        except KeyError:
+            raise RuntimeError("Unknown Transcriber config: "+clz)
 
 
 @dataclass
@@ -235,7 +237,7 @@ class DeepscribeTranscriber:
             decoder=self.decoder,
             cfg=self.inf_cfg,
             device=self.device)
-        return {input: self._process(raw_results[input]) for input in input_paths}
+        return {input: self._process_result(raw_results[input]) for input in input_paths}
 
 
 
