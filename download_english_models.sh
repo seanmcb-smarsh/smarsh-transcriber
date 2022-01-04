@@ -5,7 +5,7 @@ source $(dirname $0)/common_download.sh
 FILES="all.acronyms.txt deepscribe-0.3.0.pth financial-0.1.3.trie punc-0.2.0.pth"
 ARTIFACTORY_REPO="BinaryTestDataSandbox"
 MODELS_HOME="audio/models/en"
-FINAL_DESTINATION="tests/test_models/en/"
+FINAL_DESTINATION="models"
 ARTIFACTORY_HOSTNAME=${ARTIFACTORY_HOSTNAME:-"artifacts.corp.digitalreasoning.com"}
 REMOTE_HOME="https://$ARTIFACTORY_HOSTNAME/artifactory/$ARTIFACTORY_REPO/$MODELS_HOME"
 ARTIFACTORY_API="https://$ARTIFACTORY_HOSTNAME/artifactory/api/storage/$ARTIFACTORY_REPO/$MODELS_HOME"
