@@ -30,7 +30,6 @@ jobs:
         repository: Smarsh/build-tools
         path: ci-tools
         ref: master
-        token: ${{ secrets.BUILD_TOOLS_TOKEN }} # Temp fix - this should be using a central token. The current token will expire early January
-
+        token: ${{ secrets.CONDUCT_INTEL_BUILD_TOOLS }}
     - name: Build
       run: ./ci-tools/package-all.sh
