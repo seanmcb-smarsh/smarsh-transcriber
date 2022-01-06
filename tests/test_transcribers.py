@@ -16,12 +16,30 @@ def validate_result(result):
             assert token.end_time > token.start_time
             assert token.start_time > prev_end
             prev_end = token.end_time
-            
+
+def testit(language,audio):
+    transcriber = load_yaml("config/"+language+".yaml")
+    input = "tests/"+audio
+    result = transcriber.predict(input)
+    validate_result(result)
+
 class Test(TestCase):
 
     def test_english(self):
-        transcriber = load_yaml("config/english.yaml")
-        input = "tests/the_cat_in_the_hat.wav" 
-        result = transcriber.predict(input)
-        validate_result(result)
+        testit("english","the_cat_in_the_hat.wav")
+
+    def test_cantonese(self):
+        testit("cantonese","the_cat_in_the_hat.wav")
+
+    def test_mandarin(self):
+        testit("mandarin","the_cat_in_the_hat.wav")
+
+    def test_japanese(self):
+        testit("japanese","the_cat_in_the_hat.wav")
+
+    def test_spanish(self):
+        testit("spanish","the_cat_in_the_hat.wav")
+
+    def test_french(self):
+        testit("french","the_cat_in_the_hat.wav")
 
