@@ -69,11 +69,11 @@ def load_yaml(yaml_file: str):
             raise RuntimeError("Configuration can only specify 1 type of Transcriber")
         clz = list(dict.keys())[0]
         args = dict[clz]
-        try:
-            cfg = globals()[clz](**args)
-            return cfg.load()
-        except KeyError:
-            raise RuntimeError("Unknown Transcriber config: "+clz)
+        #try:
+        cfg = globals()[clz](**args)
+        return cfg.load()
+        #except KeyError:
+        #    raise RuntimeError("Unknown Transcriber: '"+clz+"'")
 
 
 @dataclass
@@ -92,8 +92,8 @@ class TranscriptionResult:
     """
     tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
 
-WordLanguages = ['en']
-CharLanguages = ['zh','jp']
+WordLanguages = ['en','fr','sp']
+CharLanguages = ['ca','cn','jp']
 
 class DeepscribeTranscriber:
     """

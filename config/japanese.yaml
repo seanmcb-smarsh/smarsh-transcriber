@@ -1,9 +1,6 @@
-transcriber: deepscribe
-# Dev environment locations - change for deployment
-model_path: "/share/models/japanese/deepscribe-jp-0.1.1.pth"
-lm_path: "/share/models/japanese/japanese-0.1.0.trie"
-punc_path: 
-acronyms_path: 
-lm_alpha: 0.39
-lm_beta: 0.45
-device: cuda
+DeepscribeConfig:
+    language: jp
+    model:
+        model_path: /share/models/japanese/deepscribe-jp-0.1.1.pth
+    decoder:
+        lm_path: /share/models/japanese/japanese-0.1.0.trie

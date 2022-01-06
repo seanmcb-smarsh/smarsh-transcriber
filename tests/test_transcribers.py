@@ -13,8 +13,8 @@ def validate_result(result):
             assert type(token.start_time)==int
             assert type(token.end_time)==int
             assert len(token.text) > 0
-            assert token.end_time > token.start_time
-            assert token.start_time > prev_end
+            assert token.end_time >= token.start_time
+            assert token.start_time >= prev_end
             prev_end = token.end_time
 
 def testit(language,audio):
