@@ -163,6 +163,7 @@ class DeepscribeTranscriber:
         for ch,tm in zip(text,times):
             if ch==' ' and in_word:
                 # we just finished a word
+                end = int(1000*float(tm))
                 tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
                 word = ''
                 in_word = False
