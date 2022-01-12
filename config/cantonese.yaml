@@ -1,4 +1,4 @@
 DeepscribeConfig:
-    language: ca
+    language: hk
     model:
-        model_path: /share/models/cantonese/deepscribe-hk-0.1.0.pth
+        model_path: /share/models/cantonese/deepscribe-hk-0.1.0_fixed.pth

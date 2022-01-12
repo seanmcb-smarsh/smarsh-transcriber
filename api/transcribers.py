@@ -93,7 +93,7 @@ class TranscriptionResult:
     tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
 
 WordLanguages = ['en','fr','sp']
-CharLanguages = ['ca','cn','jp']
+CharLanguages = ['cn','jp','hk']
 
 class DeepscribeTranscriber:
     """
