@@ -12,6 +12,7 @@ jsonl_file = sys.argv[1]
 lang = sys.argv[2]
 truths = []
 trans = []
+count = 0
 with open(jsonl_file,'r') as inp:
     for line in inp.readlines():
         l = json.loads(line)
@@ -19,6 +20,9 @@ with open(jsonl_file,'r') as inp:
         trans.append(TextProcessing().process_text(l['transcription'], lang))
         #print(TextProcessing().process_text(l['truth'],lang))
         #print(TextProcessing().process_text(l['transcription'],lang))
-
+        count = count+1
+        
 print("WER =",GenerateMatrices(lang)(truths, trans).WER)
+print("CER =",GenerateMatrices(lang)(truths, trans).CER)
+print("Count =",count)
 
