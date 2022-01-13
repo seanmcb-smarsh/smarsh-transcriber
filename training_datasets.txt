@@ -1,0 +1,94 @@
+DATASETS USED TO TRAIN EACH MODEL
+
+English
+    data-utils_language: en
+    acoustic_model: deepscribe-0.3.0.pth
+    datasets_hours:
+        training: 
+            librispeech_train_clean_100: 100.59
+            librispeech_train_clean_360: 363.61
+            librispeech_train_other_500: 496.86
+            fisher: 1915
+            commonvoice_v2: 727.25
+            earnings1000: 712
+            an4: 0.7
+            switchboard (swbd): 319
+            youtube (yt_en_v2): 18572.21
+            timit: 3.94
+            wsj: 81.49
+        validation: 
+            librispeech clean: 5.39
+            librispeech other: 5.12
+            Commonvoice v2: 18.93
+            Commonvoice v1 (mozilla valid): 4.99
+            Commonvoice v1 (mozilla other): 3.48
+            Earnings1000: 5.62
+            hub5: 3.65
+            youtube (yt_en_v1): 5
+            youtube (yt_en_v2): 10
+            Chime (orig_clean): 2.24
+            Chime (real_noisy): 2.75
+            Chime (simu_noisy): 2.89
+            optiver: 1.55
+            enron: 2.87
+            wsj: 1.09
+
+Spanish
+    data-utils_language: es
+    acoustic_model: deepscribe-es-0.1.3.pth
+    datasets_hours:
+        training: 
+            youtube_asr: 334.28
+            youtube_human: 738.7
+            callhome: 13.58
+            m-ailabs: 86.77
+            fisher: 160.51
+            commonvoice: 96.62
+        validation: 
+            youtube_human: 5
+            callhome: 3.6
+            m-ailabs: 10.83
+            figure_eight: 4.69
+            rhino: 2.64
+            fisher: 4.32
+            commonvoice: 3.15
+
+Mandarin
+    data-utils_language: cn
+    acoustic_model: deepscribe-cn-0.2.1.pth
+    datasets_hours:
+        training: 
+            HKUST: 175.37
+            gale_p4_train: 132.74
+            commonvoice_zh-CN: 24.25
+            aishell: 150.85
+            aidatatang: 139.94
+            callhome: 12.69
+        validation: 
+            HKUST: 4.95
+            gale_p4_train: 4.24
+            commonvoice_zh-CN: 12.8
+            aishell: 18.09
+            aidatatang: 20.22
+            callhome: 3.23
+
+Japanese
+    data-utils_language: jp
+    model: deepscribe-jp-0.1.1.pth
+    datasets_hours:
+    training: 
+        CSJ train: 617.21   
+    validation: 
+        CSJ eval 1: 2.16
+
+Cantonese
+    data-utils_language: cn
+    model: deepscribe-hk-0.1.0_fixed.pth
+    datasets_hours:
+        training: 
+            babel: 195.57
+            commonvoice: 24.12
+        validation: 
+            babel: 15.2 
+            commonvoice: 4.02
+
