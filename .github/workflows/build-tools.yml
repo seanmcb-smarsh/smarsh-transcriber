@@ -32,4 +32,4 @@ jobs:
         ref: master
         token: ${{ secrets.CONDUCT_INTEL_BUILD_TOOLS }}
     - name: Build
-      run: ./ci-tools/package-all.sh
+      run: set -x && ./ci-tools/package-all.sh
