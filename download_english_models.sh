@@ -10,8 +10,7 @@ ARTIFACTORY_HOSTNAME=${ARTIFACTORY_HOSTNAME:-"artifacts.corp.digitalreasoning.co
 REMOTE_HOME="https://$ARTIFACTORY_HOSTNAME/artifactory/$ARTIFACTORY_REPO/$MODELS_HOME"
 ARTIFACTORY_API="https://$ARTIFACTORY_HOSTNAME/artifactory/api/storage/$ARTIFACTORY_REPO/$MODELS_HOME"
 
-
-mkdir -p $MODELS_HOME
+mkdir -p $MODELS_HOME $FINAL_DESTINATION
 for FILE in $FILES;
 do
     echo "$FILE:"
@@ -22,10 +21,10 @@ do
         exit 1
     fi
 
-    DESTINATION="$MODELS_HOME/$FILE"
+    DESTINATION="$FINAL_DESTINATION/$FILE"
     if ! checksums "$DESTINATION" "$CHECKSUMS" "$FILE_URL"; then
-        $CURL_CMD "$FILE_URL" -o "$FINAL_DESTINATION/$FILE"
-        if ! checksums "$FINAL_DESTINATION/$FILE" "$CHECKSUMS" "$FILE_URL"; then
+        $CURL_CMD "$FILE_URL" -o "$DESTINATION"
+        if ! checksums "$DESTINATION" "$CHECKSUMS" "$FILE_URL"; then
             echo "Failed to download $FILE from $FILE_URL to $DESTINATION"
             exit 1
         fi
