@@ -1,3 +1,5 @@
+export ARTIFACTORY_HOSTNAME=${ARTIFACTORY_HOSTNAME:-"artifacts.corp.digitalreasoning.com"}
+
 CURL_CMD="curl -u $ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD"
 
 MD5_CMD="md5sum"
@@ -53,4 +55,48 @@ checksums() {
         fi
     fi
     return 1
+}
+
+download_files() {
+
+    # Args:
+    # 1: Files to download, space separated, as one string.
+    # 2: Destination on local file system, can be relative path or full path.
+
+    FILES="$1"
+    if [ -z "$FILES" ]; then
+        echo "No files specified to download. Exiting..."
+        exit 1
+    fi
+
+    FINAL_DESTINATION="$2"
+    if [ -z "$FINAL_DESTINATION" ]; then
+        echo "No destination specified to download. Exiting..."
+        exit 1
+    fi
+    
+    REMOTE_BASE_URL="https://$ARTIFACTORY_HOSTNAME/artifactory"
+    ARTIFACTORY_BASE_API="https://$ARTIFACTORY_HOSTNAME/artifactory/api/storage"
+
+    mkdir -p $FINAL_DESTINATION
+
+    for FILE in $FILES;
+    do
+        echo "$FILE:"
+        FILE_URL="$REMOTE_BASE_URL/$FILE"
+        CHECKSUMS=$($CURL_CMD -s "$ARTIFACTORY_BASE_API/$FILE" | jq '.checksums')
+        if [ "$CHECKSUMS" == "null" ]; then
+            echo "$FILE_URL does not exist. Artifactory API call to $ARTIFACTORY_BASE_API/$FILE failed"
+            exit 1
+        fi
+
+        DESTINATION="$FINAL_DESTINATION/$(basename $FILE)"
+        if ! checksums "$DESTINATION" "$CHECKSUMS" "$FILE_URL"; then
+            $CURL_CMD "$FILE_URL" -o "$DESTINATION"
+            if ! checksums "$DESTINATION" "$CHECKSUMS" "$FILE_URL"; then
+                echo "Failed to download $FILE from $FILE_URL to $DESTINATION"
+                exit 1
+            fi
+        fi
+    done
 }

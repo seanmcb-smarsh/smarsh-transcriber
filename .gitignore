@@ -7,3 +7,4 @@ venv
 reports
 tests/test_models
 tests/test_audio
+models
