@@ -76,10 +76,10 @@ Japanese
     data-utils_language: jp
     model: deepscribe-jp-0.1.1.pth
     datasets_hours:
-    training: 
-        CSJ train: 617.21   
-    validation: 
-        CSJ eval 1: 2.16
+        training: 
+            CSJ train: 617.21   
+        validation: 
+            CSJ eval 1: 2.16
 
 Cantonese
     data-utils_language: cn
