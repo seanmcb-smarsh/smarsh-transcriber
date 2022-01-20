@@ -1,8 +1,0 @@
-DeepscribeConfig:
-    language: fr
-    model:
-        model_path: /share/models/french/deepscribe-fr-0.1.2.pth
-    decoder:
-        lm_path: /share/models/french/french-0.1.0.trie
-    text_postprocessing:
-        punc_path: /share/models/french/punc-fr-0.1.0.pth

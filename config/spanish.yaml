@@ -1,7 +1,7 @@
 DeepscribeConfig:
     language: fr
     model:
-        model_path: /share/models/spanish/deepscribe-es-0.1.3.pth
+        model_path: models/deepscribe-es-0.1.3.pth
     decoder:
-        lm_path: /share/models/spanish/spanish-0.1.2.trie
+        lm_path: models/spanish-0.1.2.trie
 
