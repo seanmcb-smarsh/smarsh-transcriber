@@ -24,7 +24,7 @@ def doit(language,audio):
     validate_result(result)
 
 class Test(TestCase):
-    
+
     def test_english(self):
         doit("english","the_cat_in_the_hat.wav")
 
@@ -37,12 +37,15 @@ class Test(TestCase):
     def test_japanese(self):
         doit("japanese","the_cat_in_the_hat.wav")
 
-    def test_spanish(self):
-        doit("spanish","the_cat_in_the_hat.wav")
+    #def test_spanish(self):
+    #    doit("spanish","the_cat_in_the_hat.wav")
     
     def test_sentences_that_start_with_a_single_character_word(self):
         doit("english","a_small_bug.wav")
-        
+
+    def test_conversation01(self):
+        doit("english","Conversation01_8kWAV.wav")
+
     #def test_french(self):
     #    testit("french","the_cat_in_the_hat.wav")
 

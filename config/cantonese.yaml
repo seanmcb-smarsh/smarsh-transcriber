@@ -1,4 +1,4 @@
 DeepscribeConfig:
     language: hk
     model:
-        model_path: models/deepscribe-hk-0.1.0_fixed.pth
+        model_path: models/deepscribe-hk-0.1.1.pth
