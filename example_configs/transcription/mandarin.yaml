@@ -1,6 +1,6 @@
 transcriber: deepscribe
 # Dev environment locations - change for deployment
-model_path: "/share/models/mandarin/deepscribe-cn-0.2.0.pth"
+model_path: "/share/models/mandarin/deepscribe-cn-0.2.1.pth"
 lm_path: 
 punc_path: 
 acronyms_path: 
