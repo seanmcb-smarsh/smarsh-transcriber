@@ -69,11 +69,11 @@ def load_yaml(yaml_file: str):
             raise RuntimeError("Configuration can only specify 1 type of Transcriber")
         clz = list(dict.keys())[0]
         args = dict[clz]
-        #try:
-        cfg = globals()[clz](**args)
-        return cfg.load()
-        #except KeyError:
-        #    raise RuntimeError("Unknown Transcriber: '"+clz+"'")
+        try:
+            cfg = globals()[clz](**args)
+            return cfg.load()
+        except KeyError:
+            raise RuntimeError("Unknown Transcriber: '"+clz+"'")
 
 
 @dataclass
