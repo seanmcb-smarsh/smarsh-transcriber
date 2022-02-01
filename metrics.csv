@@ -1,0 +1,8 @@
+Language Manifest Count WER CER
+CA cantonese_commonvoice_test_manifest_30min.txt 602 --- 0.0914
+CA cantonese_babel_test_manifest_15min.txt 136 --- 0.35758
+CN mandarin_vast_zh_test_manifest_30min.txt 187 --- 0.54981
+CN mandarin_hub5_zh_test_manifest_30min.txt 154 --- 0.52817
+JP csj_eval1_manifest_32min.txt 147 --- 0.03575
+JP csj_eval2_manifest_25min.txt 117 --- 0.0593
+JP csj_eval3_manifest_30min.txt 139 --- 0.05063

@@ -1,5 +1,0 @@
-language_identifier: SpeechbrainLanguageIdentifierWithIntervals
-# Dev environment locations - change for deployment
-model_path: "/share/models/english/deepscribe-0.3.0.pth"
-device: "cuda"     #cuda or cpu
-batch_size: 2

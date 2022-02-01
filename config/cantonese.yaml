@@ -1,0 +1,4 @@
+DeepscribeConfig:
+    language: hk
+    model:
+        model_path: models/deepscribe-hk-0.1.1.pth

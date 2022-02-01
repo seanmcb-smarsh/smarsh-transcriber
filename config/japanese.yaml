@@ -1,0 +1,6 @@
+DeepscribeConfig:
+    language: jp
+    model:
+        model_path: models/deepscribe-jp-0.1.1.pth
+    decoder:
+        lm_path: models/japanese-0.1.0.trie

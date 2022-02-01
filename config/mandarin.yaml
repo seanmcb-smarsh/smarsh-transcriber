@@ -1,0 +1,4 @@
+DeepscribeConfig:
+    language: cn
+    model:
+        model_path: models/deepscribe-cn-0.2.1.pth

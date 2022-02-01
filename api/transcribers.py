@@ -73,7 +73,7 @@ def load_yaml(yaml_file: str):
             cfg = globals()[clz](**args)
             return cfg.load()
         except KeyError:
-            raise RuntimeError("Unknown Transcriber config: "+clz)
+            raise RuntimeError("Unknown Transcriber: '"+clz+"'")
 
 
 @dataclass
@@ -92,8 +92,8 @@ class TranscriptionResult:
     """
     tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
 
-WordLanguages = ['en']
-CharLanguages = ['zh','jp']
+WordLanguages = ['en','fr','sp']
+CharLanguages = ['cn','jp','hk']
 
 class DeepscribeTranscriber:
     """
@@ -163,6 +163,7 @@ class DeepscribeTranscriber:
         for ch,tm in zip(text,times):
             if ch==' ' and in_word:
                 # we just finished a word
+                end = int(1000*float(tm))
                 tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
                 word = ''
                 in_word = False

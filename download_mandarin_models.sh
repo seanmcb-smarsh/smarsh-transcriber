@@ -2,7 +2,7 @@
 
 source $(dirname $0)/common_download.sh
 
-FILES="BinaryTestDataSandbox/audio/models/cn/deepscribe-cn-0.2.0.pth"
+FILES="BinaryTestDataSandbox/audio/models/cn/deepscribe-cn-0.2.1.pth"
 
 DESTINATION="models"
 
