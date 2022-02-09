@@ -3,7 +3,7 @@ __copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
 import json
 import sys
 
-from api.transcribers import load_yaml
+from transcriber_api.transcribers import load_yaml
 
 config_file = sys.argv[1]
 dataset = sys.argv[2]
@@ -20,9 +20,7 @@ with open(dataset,"r") as inp:
             r = transcriber.predict(wav)
             with open(x["text_path"]) as ft:
                 txt = ft.read()
-                txt2 = ''
-                for tok in r[x["speech_path"]].tokens:
-                    txt2 = txt2 + tok.text + ' '
+                txt2 = r[x["speech_path"]].transcription
                 print(txt+' --> '+txt2)
                 result_obj = { 'input':wav, 'truth':txt, 'transcription':txt2 }
                 result_line = json.dumps(result_obj)

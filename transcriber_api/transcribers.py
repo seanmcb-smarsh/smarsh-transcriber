@@ -5,13 +5,14 @@ import yaml
 
 from deepscribe_inference.load_model import load_model, load_decoder
 from deepscribe_inference.transcribe import run_inference
-from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig
+from deepscribe_inference.config import InferenceConfig, DecoderConfig, TextPostProcessingConfig, SavedModelConfig, HardwareConfig, DataConfig
 from dataclasses import dataclass
-from typing import Iterable, Mapping
+from typing import List, Iterable, Mapping, Union
 from pydantic import BaseModel
 from abc import abstractmethod
+import logging
 
-class TranscriberConfig(BaseModel):
+class ITranscriberConfig(BaseModel):
     @abstractmethod
     def load(self):
         """
@@ -44,23 +45,33 @@ class DeepscribeModelConfig(BaseModel):
 class DeepscribeHardwareConfig(BaseModel):
     device = ''  # Use CPU or GPU for inference.  If '', use a GPU if is present, otherwise CPU
 
-class DeepscribeConfig(TranscriberConfig):
+class DeepscribeDataConfig(BaseModel):
+    batch_size: int = 32
+    num_workers: int = 8
+    hard_split_seconds: float = 0
+
+class DeepscribeConfig(ITranscriberConfig):
     language = 'language must be specified'
     decoder = DeepscribeDecoderConfig()
     text_postprocessing = DeepscribeTextPostProcessingConfig()
     model = DeepscribeModelConfig()
     hardware = DeepscribeHardwareConfig()
+    data = DeepscribeDataConfig()
 
     def load(self):
         return DeepscribeTranscriber(self)
 
-class Wav2VecConfig(BaseModel):
+class Wav2VecConfig(ITranscriberConfig):
     def load(self):
         raise NotImplementedError('Wav2Vec is not implemented')
 
-class AWSConfig(BaseModel):
+class AWSConfig(ITranscriberConfig):
     def load(self):
         raise NotImplementedError('AWS is not implemented')
+
+
+TranscriberConfig = Union[DeepscribeConfig, Wav2VecConfig, AWSConfig]
+
 
 def load_yaml(yaml_file: str):
     with open(yaml_file, "r") as y:
@@ -77,20 +88,22 @@ def load_yaml(yaml_file: str):
 
 
 @dataclass
-class TranscriptionToken:
+class TranscriptionOffset:
     """
     Common representation of word or punctuation in a transcription
     """
-    text: str       # orthography or word or punctuation
-    start_time: int # start time in milliseconds
-    end_time: int   # end time in milliseconds
+    starting_text_offset: int       # orthography or word or punctuation
+    starting_audio_offset: int      # start time in milliseconds
 
 @dataclass
 class TranscriptionResult:
     """
     Common transcription result.  Returned by all types of transcribers
     """
-    tokens: Iterable[TranscriptionToken] # sequence of words or punctuation
+    transcription: str
+    offsets: List[TranscriptionOffset] # sequence of words or punctuation
+    duration: float = 0.0 # length of audio in seconds
+    score: float = 0.0
 
 WordLanguages = ['en','fr','sp']
 CharLanguages = ['cn','jp','hk']
@@ -99,7 +112,7 @@ class DeepscribeTranscriber:
     """
     Internal implementation of Transcriber API to Deepscribe.  Only accessed via transcriber_factory()
     """
-    def __init__(self,config: DeepscribeConfig):
+    def __init__(self, config: DeepscribeConfig):
         """
         :param config: Config object containing parameters specific to the DeepscribeTranscriber
 
@@ -115,6 +128,9 @@ class DeepscribeTranscriber:
         text_postprocessing.acronyms_path: string path to acronyms models e.g. "/share/models/english/acronyms/all.acronyms.txt"
         hardware.device: string specify whether the engine should run on CPU or GPU.  None, "cpu" or "gpu".  If None (default) use a GPU if it is present, otherwise CPU
         """
+        self.transcriber_name = self.__class__.__name__
+        self._log = logging.getLogger(self.transcriber_name)
+
         self.language = config.language
         if not self.language in WordLanguages and not self.language in CharLanguages:
             raise NotImplementedError('Language not implemented: '+self.language)
@@ -143,7 +159,12 @@ class DeepscribeTranscriber:
             ),
             hardware = HardwareConfig(
                 cuda = dev=="cuda"
-            )
+            ),
+            data = DataConfig(
+                batch_size=config.data.batch_size,
+                hard_split_seconds=config.data.hard_split_seconds,
+                num_workers=config.data.num_workers,
+            ),
         )
         self.device = torch.device(dev)
         self.model = load_model(
@@ -154,53 +175,50 @@ class DeepscribeTranscriber:
             decoder_cfg=self.inf_cfg.decoder,
             labels=self.model.labels)
 
-    def _word_result(self,text,times):
+        self._log.info(f"Initialised {self.transcriber_name} using config: {self.inf_cfg}, device: {dev}")
+
+
+
+    def _word_result(self, text, times, duration, score):
         in_word = False
-        start = 0
-        end = 0
-        word = ''
-        tokens = []
-        for ch,tm in zip(text,times):
-            if ch==' ' and in_word:
+        offsets = []
+        current_text_offset = 0
+        for ch, tm in zip(text, times):
+
+            if ch == ' ':
                 # we just finished a word
-                end = int(1000*float(tm))
-                tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
-                word = ''
                 in_word = False
             elif not in_word:
                 # we are starting a new word
-                start = int(1000*float(tm))
-                word = word + ch
+                starting_audio_offset = int(1000 * float(tm))
                 in_word = True
-            else:
-                # we are inside a word
-                end = int(1000*float(tm))
-                word = word + ch
-        if in_word:
-            # final word
-            tokens.append(TranscriptionToken(text=word,start_time=start,end_time=end))
-        return TranscriptionResult(tokens)
+                offsets.append(TranscriptionOffset(starting_text_offset=current_text_offset, starting_audio_offset=starting_audio_offset))
+            # else we are inside a word
 
-    def _char_result(self,text,times):
+            current_text_offset = current_text_offset + 1
+
+        return TranscriptionResult(text, offsets, duration, score)
+
+    def _char_result(self, text, times, duration, score):
         tokens = []
-        start = 0
-        end = 0
-        prev = None
-        for ch,tm in zip(text,times):
-            end = int(1000 * float(tm))
-            if not prev is None:
-                tokens.append(TranscriptionToken(text=prev,start_time=start,end_time=end))
-            start = end
-            prev = ch
-        if not prev is None:
-            tokens.append(TranscriptionToken(text=prev, start_time=start, end_time=end))
-        return TranscriptionResult(tokens)
+        current_text_offset = 0
+
+        for ch, tm in zip(text, times):
+            current_audio_offset = int(1000 * float(tm))
+            tokens.append(TranscriptionOffset(starting_text_offset=current_text_offset, starting_audio_offset=current_audio_offset))
+            current_text_offset = current_text_offset + 1
+
+        return TranscriptionResult(text, tokens, duration, score)
 
     def _process_result(self,raw_result):
         text = raw_result['transcript']
         times = raw_result['timestamps']
+        duration = raw_result['duration']
+        duration = duration if duration is not None else 0.0
+        score = raw_result['score']
+        score = score if score is not None else 0.0
         assert len(text) == len(times)
-        return self._word_result(text, times) if self.language in WordLanguages else self._char_result(text, times)
+        return self._word_result(text, times, duration, score) if self.language in WordLanguages else self._char_result(text, times, duration, score)
 
     def predict(self,input_paths: Iterable[str]) -> Mapping[str, TranscriptionResult]:
         """
@@ -210,25 +228,30 @@ class DeepscribeTranscriber:
         :return: a Mapping of file path to TranscriptionResult
 
         @dataclass
-        class TranscriptionToken:
-            text: str
-            start_time: int
-            end_time: int
+        class TranscriptionOffset:
+            starting_text_offset: int
+            starting_audio_offset: int
 
         @dataclass
         class TranscriptionResult:
-            tokens: Iterable[TranscriptionToken]
+            transcription: str
+            offsets: List[TranscriptionOffset]
+            duration: float
+            score: float
 
         Example of result:
 
         TranscriptionResult(
-            tokens=[
-                TranscriptionToken(text='The', start_time=240, end_time=280)
-                TranscriptionToken(text='cat', start_time=480, end_time=600)
-                TranscriptionToken(text='in', start_time=880, end_time=920)
-                TranscriptionToken(text='the', start_time=1040, end_time=1080)
-                TranscriptionToken(text='hat.', start_time=1220, end_time=1340)
-            ])
+            transcription="The cat in the hat",
+            offsets=[
+                TranscriptionOffset(starting_text_offset=0, starting_audio_offset=240)
+                TranscriptionOffset(starting_text_offset=4, starting_audio_offset=480)
+                TranscriptionOffset(starting_text_offset=8, starting_audio_offset=880)
+                TranscriptionOffset(starting_text_offset=11, starting_audio_offset=1040)
+                TranscriptionOffset(starting_text_offset=15, starting_audio_offset=1220)
+            ],
+            duration=1.6370068027210884,
+            score=1.0)
         """
         if isinstance(input_paths, str):
             input_paths = [input_paths]

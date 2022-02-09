@@ -1,21 +1,24 @@
 __copyright__ = "Copyright (C) 2021, Smarsh, All rights reserved"
 
 from unittest import TestCase
+from transcriber_api.transcribers import load_yaml, TranscriptionResult, TranscriptionOffset
 
-from api.transcribers import load_yaml
 
 def validate_result(result):
-    for input in result.keys():
-        prev_end = -1
-        for token in result[input].tokens:
-            print(token)
-            assert type(token.text)==str
-            assert type(token.start_time)==int
-            assert type(token.end_time)==int
-            assert len(token.text) > 0
-            assert token.end_time >= token.start_time
-            assert token.start_time >= prev_end
-            prev_end = token.end_time
+    for input, result in result.items():
+        assert type(result) == TranscriptionResult
+        assert type(result.transcription) == str
+        assert len(result.transcription) > 0
+        assert type(result.offsets) == list
+        assert len(result.offsets) > 0
+        assert type(result.duration) == float
+        assert type(result.score) == float
+        offset: TranscriptionOffset
+        prev_offset = TranscriptionOffset(starting_text_offset=-1, starting_audio_offset=-1)
+        for offset in result.offsets:
+            assert offset.starting_text_offset > prev_offset.starting_text_offset
+            assert offset.starting_audio_offset > prev_offset.starting_audio_offset
+            prev_offset = offset
 
 def doit(language,audio):
     transcriber = load_yaml("config/"+language+".yaml")
@@ -48,4 +51,3 @@ class Test(TestCase):
 
     #def test_french(self):
     #    testit("french","the_cat_in_the_hat.wav")
-
